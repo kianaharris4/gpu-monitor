@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GPU Monitor</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{--bg:#fff;--bg2:#f5f5f3;--bg3:#ebebea;--text:#1a1a18;--text2:#5f5e5a;--text3:#9a9893;--bdr:rgba(0,0,0,.1);--bdr2:rgba(0,0,0,.18);--r:10px;--rsm:6px}
+@media(prefers-color-scheme:dark){:root{--bg:#1c1c1a;--bg2:#242422;--bg3:#2c2c2a;--text:#e8e6df;--text2:#9a9893;--text3:#666560;--bdr:rgba(255,255,255,.1);--bdr2:rgba(255,255,255,.18)}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);color:var(--text);font-size:14px;line-height:1.5}
+.page{max-width:1280px;margin:0 auto;padding:20px 16px}
+.card{background:var(--bg);border:.5px solid var(--bdr2);border-radius:var(--r);overflow:hidden}
+.metric{background:var(--bg2);border-radius:var(--rsm);padding:10px 14px}
+.ml{font-size:11px;color:var(--text2);margin-bottom:3px}
+.mv{font-size:19px;font-weight:600;line-height:1.1}
+.ms{font-size:11px;color:var(--text3);margin-top:2px}
+.bar-o{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;margin:5px 0 2px}
+.bar-i{height:100%;border-radius:3px;transition:width .5s ease}
+.chip{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:500}
+.chip-gray{background:var(--bg2);border:.5px solid var(--bdr);color:var(--text2)}
+.nav{display:flex;border-bottom:.5px solid var(--bdr2);margin-bottom:16px;overflow-x:auto}
+.nav-btn{font-size:13px;padding:8px 18px;cursor:pointer;border:none;background:none;color:var(--text2);border-bottom:2px solid transparent;font-family:inherit;white-space:nowrap;transition:color .15s,border-color .15s}
+.nav-btn.active{color:var(--text);border-bottom-color:var(--text);font-weight:500}
+.nav-btn:hover:not(.active){color:var(--text)}
+.pane{display:none}.pane.active{display:block}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.g4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.g6{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+@media(max-width:700px){.g4,.g6{grid-template-columns:repeat(2,1fr)}.g2,.g3{grid-template-columns:1fr}}
+.track{display:flex;align-items:stretch;height:68px}
+.tl{width:96px;min-width:96px;display:flex;flex-direction:column;justify-content:center;padding-right:10px;border-right:.5px solid var(--bdr)}
+.tl-name{font-size:11px;font-weight:500;color:var(--text2)}
+.tl-val{font-size:15px;font-weight:600;margin-top:1px}
+.tl-unit{font-size:10px;color:var(--text3);margin-top:1px}
+.tc{flex:1;min-width:0;position:relative}
+.tdiv{height:.5px;background:var(--bdr);margin:0 0 0 106px}
+.proc-row{display:flex;align-items:center;cursor:pointer;border-radius:6px;transition:background .12s;padding:0}
+.proc-row:hover,.proc-row.selected{background:var(--bg2)}
+.proc-row.dimmed{opacity:.35}
+.th-row{display:flex;align-items:center;padding:3px 0 6px;border-bottom:.5px solid var(--bdr2);font-size:10px;color:var(--text3);font-weight:500}
+.badge-compute{background:rgba(55,138,221,.12);color:#0C447C;font-size:10px;padding:2px 6px;border-radius:20px;font-weight:500}
+.badge-graphics{background:rgba(99,153,34,.12);color:#27500A;font-size:10px;padding:2px 6px;border-radius:20px;font-weight:500}
+.badge-mixed{background:rgba(239,159,39,.12);color:#633806;font-size:10px;padding:2px 6px;border-radius:20px;font-weight:500}
+.trend-up{color:#A32D2D}.trend-dn{color:#3B6D11}.trend-fl{color:var(--text3)}
+.gap-pill{font-size:10px;padding:2px 8px;border-radius:20px;background:rgba(239,159,39,.12);color:#633806;font-weight:500}
+.src-pill{font-size:10px;padding:2px 8px;border-radius:20px;background:rgba(55,138,221,.1);color:#0C447C;font-weight:500}
+.na{color:var(--text3);font-style:italic;font-size:12px}
+.insight{padding:8px 14px;background:var(--bg2);border-radius:var(--rsm);font-size:11px;color:var(--text2);display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px}
+.seg-bar{height:10px;background:var(--bg3);border-radius:5px;overflow:hidden;position:relative}
+.seg-u{height:100%;border-radius:5px;position:absolute;left:0;transition:width .5s ease}
+.seg-r{height:100%;position:absolute;opacity:.35;transition:width .5s ease,left .5s ease}
+.dtable{width:100%;font-size:12px;border-collapse:collapse}
+.dtable td{padding:5px 0;vertical-align:top}
+.dtable td:first-child{color:var(--text2);width:150px}
+.dtable td:last-child{font-weight:500;word-break:break-word}
+select{font-size:11px;padding:3px 7px;border-radius:5px;border:.5px solid var(--bdr2);background:var(--bg2);color:var(--text);font-family:inherit;cursor:pointer}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
+.dot-live{background:#1D9E75;animation:pulse 2s ease-in-out infinite}
+.dot-err{background:#E24B4A}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- ── Header ── -->
+<div class="hdr" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+  <div>
+    <div style="font-size:18px;font-weight:600">GPU Monitor</div>
+    <div style="font-size:12px;color:var(--text2);margin-top:2px" id="hdr-sub">Connecting...</div>
+  </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <select id="gpu-picker" onchange="setGpuSelection(this.value)" style="min-width:220px">
+        <option value="">Detecting GPUs...</option>
+      </select>
+      <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)">
+        <span class="status-dot dot-err" id="status-dot"></span>
+        <span id="status-txt">Connecting</span>
+      </span>
+    <span class="chip chip-gray" id="hdr-driver">—</span>
+    <span class="chip chip-gray" id="hdr-compute">—</span>
+    <span class="chip" id="hdr-mem-badge" style="background:rgba(55,138,221,.12);color:#0C447C">—</span>
+  </div>
+</div>
+
+<!-- ── KPI Strip ── -->
+<div class="g6" style="margin-bottom:16px">
+  <div class="metric"><div class="ml">GPU util</div><div class="mv" id="k-util" style="color:#378ADD">—</div><div class="bar-o"><div class="bar-i" id="kb-util" style="background:#378ADD;width:0%"></div></div><div class="ms">shader active</div></div>
+  <div class="metric"><div class="ml">Temperature</div><div class="mv" id="k-temp" style="color:#EF9F27">—</div><div class="bar-o"><div class="bar-i" id="kb-temp" style="background:#EF9F27;width:0%"></div></div><div class="ms" id="k-temp-s">—</div></div>
+  <div class="metric"><div class="ml">Power draw</div><div class="mv" id="k-pwr" style="color:#D85A30">—</div><div class="bar-o"><div class="bar-i" id="kb-pwr" style="background:#D85A30;width:0%"></div></div><div class="ms" id="k-pwr-s">—</div></div>
+  <div class="metric"><div class="ml" id="k-mem-l">GPU memory</div><div class="mv" id="k-mem" style="color:#1D9E75">—</div><div class="bar-o"><div class="bar-i" id="kb-mem" style="background:#1D9E75;width:0%"></div></div><div class="ms" id="k-mem-s">—</div></div>
+  <div class="metric"><div class="ml">GPU clock</div><div class="mv" id="k-clk" style="color:#7F77DD">—</div><div class="bar-o"><div class="bar-i" id="kb-clk" style="background:#7F77DD;width:0%"></div></div><div class="ms" id="k-clk-s">—</div></div>
+  <div class="metric"><div class="ml">Mem clock</div><div class="mv" id="k-mclk" style="color:#D4537E">—</div><div class="bar-o"><div class="bar-i" id="kb-mclk" style="background:#D4537E;width:0%"></div></div><div class="ms" id="k-mclk-s">—</div></div>
+</div>
+
+<!-- ── Tab Nav ── -->
+<div class="nav">
+  <button class="nav-btn active" onclick="switchTab('overview',this)">Overview</button>
+  <button class="nav-btn" onclick="switchTab('processes',this)">Processes</button>
+  <button class="nav-btn" onclick="switchTab('memory',this)">Memory</button>
+  <button class="nav-btn" onclick="switchTab('device',this)">Device info</button>
+</div>
+
+<!-- ════════ OVERVIEW ════════ -->
+<div id="tab-overview" class="pane active">
+  <div class="card" style="margin-bottom:12px">
+    <div style="padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div style="font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Metrics over time</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">Shared x-axis — hover any track to compare values at the same moment</div>
+      </div>
+      <select id="ov-win" onchange="setOvWin(this.value)">
+        <option value="10">10 s</option><option value="60" selected>60 s</option><option value="120">2 min</option><option value="300">5 min</option>
+      </select>
+    </div>
+    <div style="padding:0 16px 14px">
+      <div class="track"><div class="tl"><div class="tl-name">Utilization</div><div class="tl-val" id="tl-util" style="color:#378ADD">—</div><div class="tl-unit">0–100%</div></div><div class="tc"><canvas id="tc-util"></canvas></div></div>
+      <div class="tdiv"></div>
+      <div class="track"><div class="tl"><div class="tl-name">Temperature</div><div class="tl-val" id="tl-temp" style="color:#EF9F27">—</div><div class="tl-unit" id="tl-temp-u">°C</div></div><div class="tc"><canvas id="tc-temp"></canvas></div></div>
+      <div class="tdiv"></div>
+      <div class="track"><div class="tl"><div class="tl-name">Power draw</div><div class="tl-val" id="tl-pwr" style="color:#D85A30">—</div><div class="tl-unit" id="tl-pwr-u">W</div></div><div class="tc"><canvas id="tc-pwr"></canvas></div></div>
+      <div class="tdiv"></div>
+      <div class="track"><div class="tl"><div class="tl-name">Memory used</div><div class="tl-val" id="tl-mem" style="color:#1D9E75">—</div><div class="tl-unit">0–100%</div></div><div class="tc"><canvas id="tc-mem"></canvas></div></div>
+      <div class="tdiv"></div>
+      <div class="track"><div class="tl"><div class="tl-name">GPU clock</div><div class="tl-val" id="tl-clk" style="color:#7F77DD">—</div><div class="tl-unit" id="tl-clk-u">GHz</div></div><div class="tc"><canvas id="tc-clk"></canvas></div></div>
+    </div>
+  </div>
+
+  <div class="g2" style="margin-bottom:12px">
+    <div class="card" style="padding:14px 16px">
+      <div style="font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Engine utilization</div>
+      <div id="engine-bars"></div>
+    </div>
+    <div class="card" style="padding:14px 16px">
+      <div style="font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">Thermal &amp; power</div>
+      <div style="display:flex;gap:16px;align-items:flex-start">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+          <svg width="86" height="86" viewBox="0 0 86 86">
+            <circle cx="43" cy="43" r="33" fill="none" stroke="var(--bdr2)" stroke-width="8"/>
+            <circle cx="43" cy="43" r="33" fill="none" stroke="#EF9F27" stroke-width="8" stroke-linecap="round" stroke-dasharray="207" id="arc-temp" transform="rotate(-90 43 43)" style="transition:stroke-dashoffset .8s,stroke .4s"/>
+            <text x="43" y="39" text-anchor="middle" font-size="15" font-weight="600" fill="var(--text)" id="arc-temp-v">—</text>
+            <text x="43" y="53" text-anchor="middle" font-size="10" fill="var(--text2)">°C</text>
+          </svg>
+          <div style="font-size:11px;color:var(--text3)">Core temp</div>
+          <div style="font-size:11px;color:var(--text2)">Hot spot: <span style="font-weight:600" id="hotspot">—</span></div>
+          <div style="font-size:11px;color:var(--text2)">Fan: <span style="font-weight:600" id="fan-val">—</span></div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+          <svg width="86" height="86" viewBox="0 0 86 86">
+            <circle cx="43" cy="43" r="33" fill="none" stroke="var(--bdr2)" stroke-width="8"/>
+            <circle cx="43" cy="43" r="33" fill="none" stroke="#D85A30" stroke-width="8" stroke-linecap="round" stroke-dasharray="207" id="arc-pwr" transform="rotate(-90 43 43)" style="transition:stroke-dashoffset .8s,stroke .4s"/>
+            <text x="43" y="39" text-anchor="middle" font-size="14" font-weight="600" fill="var(--text)" id="arc-pwr-v">—</text>
+            <text x="43" y="53" text-anchor="middle" font-size="10" fill="var(--text2)">W</text>
+          </svg>
+          <div style="font-size:11px;color:var(--text3)">Power draw</div>
+          <div style="font-size:11px;color:var(--text2)">Voltage: <span style="font-weight:600" id="volt">—</span></div>
+          <div style="font-size:11px;color:var(--text2)">Mem clk: <span style="font-weight:600" id="mem-clk-lbl">—</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="insight"><span style="font-weight:600">Correlation:</span><span id="ov-insight">Waiting for data...</span></div>
+</div>
+
+<!-- ════════ PROCESSES ════════ -->
+<div id="tab-processes" class="pane">
+  <div class="card">
+    <div style="padding:14px 16px 0">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px">
+        <div>
+          <div style="font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Per-process GPU usage</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">Click a row to isolate &nbsp;·&nbsp; <span id="proc-method-note"></span></div>
+        </div>
+        <div style="display:flex;gap:7px;flex-wrap:wrap">
+          <select id="proc-metric" onchange="setProcMetric(this.value)"><option value="gpu">GPU utilization</option><option value="mem">Memory used</option></select>
+          <select id="proc-win" onchange="setProcWin(this.value)"><option value="10">10 s</option><option value="60" selected>60 s</option><option value="120">2 min</option><option value="300">5 min</option></select>
+          <select id="proc-sort" onchange="renderProcTable()"><option value="gpu">Sort: GPU%</option><option value="mem">Sort: Memory</option><option value="name">Sort: Name</option></select>
+        </div>
+      </div>
+      <div class="g4" style="margin-bottom:12px">
+        <div class="metric"><div class="ml">Total GPU use</div><div class="mv" id="ps-total" style="color:#378ADD">—</div><div class="bar-o"><div class="bar-i" id="psb-total" style="background:#378ADD;width:0%"></div></div></div>
+        <div class="metric"><div class="ml">Active processes</div><div class="mv" id="ps-procs">—</div><div class="ms" id="ps-procs-s">—</div></div>
+        <div class="metric"><div class="ml" id="ps-mem-l">Memory used</div><div class="mv" id="ps-mem">—</div><div class="bar-o"><div class="bar-i" id="psb-mem" style="background:#1D9E75;width:0%"></div></div><div class="ms" id="ps-mem-s">—</div></div>
+        <div class="metric"><div class="ml">Top consumer</div><div class="mv" style="font-size:13px;line-height:1.3" id="ps-top">—</div><div class="ms" id="ps-top-s">—</div></div>
+      </div>
+      <div id="proc-legend" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px"></div>
+    </div>
+    <div style="position:relative;height:160px;padding:0 16px">
+      <canvas id="proc-chart"></canvas>
+      <div id="proc-tooltip" style="position:absolute;top:6px;right:16px;background:var(--bg);border:.5px solid var(--bdr2);border-radius:8px;padding:8px 12px;font-size:11px;display:none;pointer-events:none;min-width:150px;z-index:2"></div>
+    </div>
+    <div style="height:.5px;background:var(--bdr);margin:10px 0 0"></div>
+    <div style="padding:0 16px">
+      <div class="th-row">
+        <div style="width:14px;padding:0 4px"></div>
+        <div style="flex:1;padding:0 8px">Process</div>
+        <div style="width:68px;text-align:center">Type</div>
+        <div style="width:48px;text-align:right">GPU%</div>
+        <div style="width:96px;text-align:center" id="th-spark">60 s trend</div>
+        <div style="width:32px;text-align:right">±</div>
+        <div style="width:68px;text-align:right" id="th-mem-col">VRAM</div>
+        <div style="width:52px;text-align:right">Mem%</div>
+      </div>
+      <div id="proc-table"></div>
+    </div>
+    <div style="height:12px"></div>
+  </div>
+  <div class="insight"><span style="font-weight:600">Pattern:</span><span id="proc-insight">Waiting for process data...</span></div>
+</div>
+
+<!-- ════════ MEMORY ════════ -->
+<div id="tab-memory" class="pane">
+  <div class="g2" style="margin-bottom:12px">
+    <div class="card" style="padding:14px 16px">
+      <div style="font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">GPU-accessible memory</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <span class="chip" id="mem-badge" style="background:rgba(55,138,221,.12);color:#0C447C">—</span>
+        <span style="font-size:11px;color:var(--text2)" id="mem-arch-pill">—</span>
+      </div>
+      <div id="mem-static-rows" style="display:flex;flex-direction:column;gap:7px"></div>
+    </div>
+    <div class="card" style="padding:14px 16px">
+      <div style="font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Allocation breakdown</div>
+      <div id="mem-alloc-rows" style="display:flex;flex-direction:column;gap:10px"></div>
+      <div style="display:flex;gap:12px;margin-top:10px;flex-wrap:wrap">
+        <span style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text2)"><span style="width:8px;height:8px;border-radius:2px;display:inline-block;background:#378ADD" id="leg-proc"></span>Process use</span>
+        <span style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text2)"><span style="width:8px;height:8px;border-radius:2px;display:inline-block;background:#378ADD;opacity:.35" id="leg-drv"></span>Driver reserved</span>
+        <span style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text2)"><span style="width:8px;height:8px;border-radius:2px;display:inline-block;background:var(--bg3)"></span>Free</span>
+      </div>
+      <div style="font-size:11px;color:var(--text3);padding-top:8px;border-top:.5px solid var(--bdr);margin-top:8px" id="mem-bw-note"></div>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:12px">
+    <div style="padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div style="font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Memory used over time — by process</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">Each line = one process. Hover to compare.</div>
+      </div>
+      <select id="mem-win" onchange="setMemWin(this.value)"><option value="10">10 s</option><option value="60" selected>60 s</option><option value="120">2 min</option><option value="300">5 min</option></select>
+    </div>
+    <div id="mem-chart-legend" style="padding:0 16px 6px;display:flex;flex-wrap:wrap;gap:10px"></div>
+    <div style="position:relative;height:140px;padding:0 16px"><canvas id="mem-chart"></canvas></div>
+    <div style="height:10px"></div>
+  </div>
+</div>
+
+<!-- ════════ DEVICE INFO ════════ -->
+<div id="tab-device" class="pane">
+  <div class="g2" style="margin-bottom:12px">
+    <div class="card" style="padding:14px 16px">
+      <div style="font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Hardware</div>
+      <table class="dtable"><tbody id="dev-hw"></tbody></table>
+    </div>
+    <div class="card" style="padding:14px 16px">
+      <div style="font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Memory &amp; interconnect</div>
+      <table class="dtable"><tbody id="dev-mem-tbl"></tbody></table>
+    </div>
+    <div class="card" style="padding:14px 16px">
+      <div style="font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Data sources</div>
+      <table class="dtable"><tbody id="dev-sources"></tbody></table>
+    </div>
+    <div class="card" style="padding:14px 16px">
+      <div style="font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Known gaps</div>
+      <div id="dev-gaps" style="display:flex;flex-direction:column;gap:6px"></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- .page -->
+
+<script>
+// ─── Constants ────────────────────────────────────────────────────────────────
+const PROC_COLORS = ['#378ADD','#1D9E75','#EF9F27','#7F77DD','#D85A30','#D4537E','#639922','#888780'];
+const MAXHIST = 300;
+
+// ─── State ────────────────────────────────────────────────────────────────────
+let OV_WIN = 60, PROC_WIN = 60, MEM_WIN = 60;
+let selectedProc = null, procMetric = 'gpu';
+let lastSnap = null, lastCaps = {}, allSnaps = [], selectedGpuKey = null;
+let pollTimer = null;
+let sampleIntervalSec = 1;
+const hist = {util:[],temp:[],pwr:[],mem:[],clk:[]};
+const procHist = {}; // pid_str → {gpu:[], mem:[], name, type}
+
+// ─── WebSocket ────────────────────────────────────────────────────────────────
+function connect() {
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  const ws = new WebSocket(`${proto}://${location.host}/ws`);
+
+  ws.onopen = () => {
+    sampleIntervalSec = 1;
+    document.getElementById('status-dot').className = 'status-dot dot-live';
+    document.getElementById('status-txt').textContent = 'Live';
+  };
+  ws.onmessage = e => {
+    const data = JSON.parse(e.data);
+    if (data.ping) return;
+    if (pollTimer) {
+      clearInterval(pollTimer);
+      pollTimer = null;
+    }
+    applyPayload(data);
+  };
+  ws.onerror = () => {
+    document.getElementById('status-dot').className = 'status-dot dot-err';
+    document.getElementById('status-txt').textContent = 'Polling';
+    startPolling();
+  };
+  ws.onclose = () => {
+    document.getElementById('status-dot').className = 'status-dot dot-err';
+    document.getElementById('status-txt').textContent = 'Polling';
+    startPolling();
+  };
+}
+
+function applyPayload(data) {
+  if (data.error && (!data.gpus || data.gpus.length === 0)) {
+    document.getElementById('status-dot').className = 'status-dot dot-err';
+    document.getElementById('status-txt').textContent = 'Error';
+    setText('hdr-sub', data.error);
+    return;
+  }
+  allSnaps = Array.isArray(data) ? data : (data.gpus || []);
+  updateGpuPicker(allSnaps);
+  lastSnap = getSelectedSnapshot(allSnaps);
+  if (!lastSnap) return;
+  lastCaps = lastSnap.caps || {};
+  updateAll(lastSnap);
+}
+
+async function pollOnce() {
+  try {
+    const res = await fetch('/api/snapshot', { cache: 'no-store' });
+    const data = await res.json();
+    sampleIntervalSec = 2;
+    document.getElementById('status-dot').className = 'status-dot dot-live';
+    document.getElementById('status-txt').textContent = 'Live';
+    applyPayload(data);
+  } catch (_) {
+    document.getElementById('status-dot').className = 'status-dot dot-err';
+    document.getElementById('status-txt').textContent = 'Error';
+  }
+}
+
+function startPolling() {
+  if (pollTimer) return;
+  pollOnce();
+  pollTimer = setInterval(pollOnce, 2000);
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function na(v, suf='', dec=0) {
+  if (v === null || v === undefined) return '<span class="na">N/A</span>';
+  return (typeof v === 'number' ? (dec > 0 ? v.toFixed(dec) : Math.round(v)) : v) + suf;
+}
+function setText(id, html) { const e=document.getElementById(id); if(e) e.innerHTML=html; }
+function setBar(id, v, max) { const e=document.getElementById(id); if(e) e.style.width = (v&&max ? Math.min(100,Math.round(v/max*100)) : 0)+'%'; }
+function windowPoints(seconds) {
+  return Math.max(2, Math.min(MAXHIST, Math.round(Number(seconds) / sampleIntervalSec)));
+}
+function formatWindowLabel(seconds) {
+  const s = Number(seconds);
+  if (s < 60) return `${s} s`;
+  if (s % 60 === 0) return s === 60 ? '60 s' : `${s / 60} min`;
+  return `${s}s`;
+}
+function mbToGb(mb) {
+  return mb == null ? null : mb / 1024;
+}
+function fmtGbFromMb(mb, dec=1) {
+  const gb = mbToGb(mb);
+  return gb == null ? '<span class="na">N/A</span>' : `${gb.toFixed(dec)} GB`;
+}
+function gpuKey(s, fallbackIndex) {
+  if (s.gpu_index !== null && s.gpu_index !== undefined) return String(s.gpu_index);
+  if (s.device_name) return s.device_name;
+  return String(fallbackIndex);
+}
+function gpuLabel(s, fallbackIndex) {
+  const idx = s.gpu_index !== null && s.gpu_index !== undefined ? s.gpu_index : fallbackIndex;
+  return `GPU ${idx} · ${s.device_name || 'Unknown adapter'}`;
+}
+function updateGpuPicker(snaps) {
+  const picker = document.getElementById('gpu-picker');
+  if (!picker) return;
+  if (!snaps.length) {
+    picker.innerHTML = '<option value="">No GPUs detected</option>';
+    return;
+  }
+  picker.innerHTML = snaps.map((s, i) => {
+    const key = gpuKey(s, i);
+    return `<option value="${key}">${gpuLabel(s, i)}</option>`;
+  }).join('');
+  if (selectedGpuKey === null || !snaps.some((s, i) => gpuKey(s, i) === selectedGpuKey)) {
+    selectedGpuKey = gpuKey(snaps[0], 0);
+  }
+  picker.value = selectedGpuKey;
+}
+function getSelectedSnapshot(snaps) {
+  if (!snaps.length) return null;
+  return snaps.find((s, i) => gpuKey(s, i) === selectedGpuKey) || snaps[0];
+}
+function resetUiHistory() {
+  Object.keys(hist).forEach(k => {
+    hist[k] = [];
+  });
+  Object.keys(procHist).forEach(k => delete procHist[k]);
+  lastHoverPct = null;
+  selectedProc = null;
+}
+function setGpuSelection(value) {
+  selectedGpuKey = value;
+  resetUiHistory();
+  lastSnap = getSelectedSnapshot(allSnaps);
+  if (!lastSnap) return;
+  lastCaps = lastSnap.caps || {};
+  updateAll(lastSnap);
+}
+window.setGpuSelection = setGpuSelection;
+
+function memLabel(m) {
+  return m==='dedicated'?'Dedicated (VRAM)': m==='unified'?'Unified (SoC Memory)':'Shared (System Memory)';
+}
+function memColor(m) {
+  return m==='dedicated'?'#378ADD': m==='unified'?'#1D9E75':'#7F77DD';
+}
+function memArch(m) {
+  return m==='dedicated'?'Discrete GPU · physically separate VRAM':
+         m==='unified'  ?'Integrated SoC · unified memory (UMA)':
+                          'Integrated/mobile GPU · shared system memory';
+}
+
+// ─── Header & KPI ─────────────────────────────────────────────────────────────
+function updateHeader(s) {
+  setText('hdr-sub', (s.device_name||'—') + (s.bus_id ? ' · '+s.bus_id : ''));
+  setText('hdr-driver', s.driver_version||'—');
+  setText('hdr-compute', s.compute_api||'—');
+  const m = s.memory, model = m?.mem_model||'dedicated', col = memColor(model);
+  const badge = document.getElementById('hdr-mem-badge');
+  if(badge){ badge.textContent = memLabel(model); badge.style.background=col+'20'; badge.style.color=col; }
+}
+
+function updateKPI(s) {
+  const m = s.memory;
+  setText('k-util', na(s.util_pct,'%')); setBar('kb-util', s.util_pct, 100);
+  setText('k-temp', na(s.temp_c,'°C'));  setBar('kb-temp', s.temp_c, s.temp_max_c||100);
+  setText('k-temp-s', s.temp_max_c ? 'Tj max '+s.temp_max_c+'°C' : '—');
+  setText('k-pwr', na(s.power_w,' W',1)); setBar('kb-pwr', s.power_w, s.power_limit_w||s.power_w||1);
+  setText('k-pwr-s', s.power_limit_w ? '/ '+Math.round(s.power_limit_w)+' W TDP' : '—');
+  if(m) {
+    setText('k-mem-l', memLabel(m.mem_model)+' used');
+    setText('k-mem', fmtGbFromMb(m.used_mb)); setBar('kb-mem', m.used_mb, m.total_mb);
+    setText('k-mem-s', '/ '+(mbToGb(m.total_mb)||0).toFixed(1)+' GB total');
+  }
+  const clkGhz = s.clock_mhz ? s.clock_mhz/1000 : null;
+  setText('k-clk', na(clkGhz,' GHz',2)); setBar('kb-clk', s.clock_mhz, s.max_clock_mhz||s.clock_mhz||1);
+  setText('k-clk-s', s.max_clock_mhz ? 'max '+(s.max_clock_mhz/1000).toFixed(2)+' GHz' : '—');
+  const mclkGhz = s.mem_clock_mhz ? s.mem_clock_mhz/1000 : null;
+  setText('k-mclk', mclkGhz ? na(mclkGhz,' GHz',2) : '<span class="na">N/A</span>');
+  setText('k-mclk-s', lastCaps.mem_clock ? 'memory clock' : 'not available');
+}
+
+// ─── Overview — track charts ──────────────────────────────────────────────────
+const OV_TRACKS = [
+  {id:'util',ci:'tc-util',li:'tl-util',col:'#378ADD',min:0,maxD:100,fmt:v=>Math.round(v)+'%',fill:'rgba(55,138,221,.1)',maxKey:null},
+  {id:'temp',ci:'tc-temp',li:'tl-temp',col:'#EF9F27',min:30,maxD:90, fmt:v=>Math.round(v)+'°C',fill:'rgba(239,159,39,.09)',maxKey:'temp_max_c'},
+  {id:'pwr', ci:'tc-pwr', li:'tl-pwr', col:'#D85A30',min:0,maxD:400,fmt:v=>Math.round(v)+' W',fill:'rgba(216,90,48,.09)',maxKey:'power_limit_w'},
+  {id:'mem', ci:'tc-mem', li:'tl-mem', col:'#1D9E75',min:0,maxD:100,fmt:v=>Math.round(v)+'%',fill:'rgba(29,158,117,.09)',maxKey:null},
+  {id:'clk', ci:'tc-clk', li:'tl-clk', col:'#7F77DD',min:0,maxD:3,  fmt:v=>v.toFixed(2)+' GHz',fill:'rgba(127,119,221,.09)',maxKey:null},
+];
+const ovCharts = {};
+let lastHoverPct = null;
+
+const crosshairPlugin = {
+  id:'crosshair',
+  afterDraw(ch) {
+    if(ch._cx==null) return;
+    const {ctx,chartArea:{top,bottom}} = ch;
+    ctx.save(); ctx.strokeStyle='rgba(128,128,128,.35)'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(ch._cx,top); ctx.lineTo(ch._cx,bottom); ctx.stroke(); ctx.restore();
+  }
+};
+Chart.register(crosshairPlugin);
+
+function initOvCharts() {
+  OV_TRACKS.forEach(tr => {
+    const ctx = document.getElementById(tr.ci).getContext('2d');
+    ovCharts[tr.id] = new Chart(ctx, {
+      type:'line',
+      data:{labels:Array.from({length:windowPoints(OV_WIN)},()=>''),datasets:[{data:[],borderColor:tr.col,borderWidth:1.5,fill:true,backgroundColor:tr.fill,pointRadius:0,tension:.3,spanGaps:true}]},
+      options:{responsive:true,maintainAspectRatio:false,animation:false,layout:{padding:{top:4,bottom:4}},
+        plugins:{legend:{display:false},tooltip:{enabled:false},crosshair:{}},
+        scales:{x:{display:false},y:{min:tr.min,max:tr.maxD,ticks:{font:{size:9},color:'rgba(128,128,128,.7)',maxTicksLimit:3,padding:3},grid:{color:'rgba(128,128,128,.07)'}}}},
+      onHover:(e,_,ch)=>handleOvHover(e,ch,tr.id)
+    });
+    document.getElementById(tr.ci).addEventListener('mouseleave',()=>{
+      OV_TRACKS.forEach(t=>{ if(ovCharts[t.id]){ovCharts[t.id]._cx=null;ovCharts[t.id].update('none');}});
+      lastHoverPct=null;
+    });
+  });
+}
+
+function handleOvHover(e, ch, tid) {
+  if(!e.native) return;
+  const rect = ch.canvas.getBoundingClientRect();
+  const x = e.native.clientX - rect.left;
+  const {left:cl,right:cr} = ch.chartArea;
+  const p = Math.max(0,Math.min(1,(x-cl)/(cr-cl)));
+  lastHoverPct = p;
+  OV_TRACKS.forEach(tr => {
+    const c = ovCharts[tr.id]; if(!c) return;
+    const {left:l2,right:r2} = c.chartArea;
+    c._cx = l2+p*(r2-l2); c.update('none');
+    const len = c.data.datasets[0].data.length || 1;
+    const idx = Math.round(p*(len-1));
+    const v = c.data.datasets[0].data[Math.min(idx,c.data.datasets[0].data.length-1)];
+    if(v!=null) document.getElementById(tr.li).textContent = tr.fmt(v);
+  });
+}
+
+function pushOvHist(s) {
+  const m = s.memory;
+  const vals = {
+    util: s.util_pct,
+    temp: s.temp_c,
+    pwr:  s.power_w,
+    mem:  m ? m.used_mb/m.total_mb*100 : null,
+    clk:  s.clock_mhz ? s.clock_mhz/1000 : null,
+  };
+  Object.keys(vals).forEach(k=>{hist[k].push(vals[k]);if(hist[k].length>MAXHIST)hist[k].shift();});
+  OV_TRACKS.forEach(tr=>{
+    const c=ovCharts[tr.id]; if(!c) return;
+    const maxV = tr.maxKey && s[tr.maxKey] ? s[tr.maxKey] : tr.maxD;
+    const points = windowPoints(OV_WIN);
+    c.data.labels = Array.from({length:points},()=> '');
+    c.data.datasets[0].data = hist[tr.id].slice(-points);
+    c.options.scales.y.max = maxV;
+    c.update('none');
+    if(lastHoverPct==null && vals[tr.id]!=null)
+      document.getElementById(tr.li).textContent = tr.fmt(vals[tr.id]);
+  });
+}
+
+function setOvWin(v){OV_WIN=parseInt(v);} window.setOvWin=setOvWin;
+
+// ─── Overview — engine bars ───────────────────────────────────────────────────
+function updateEngines(s) {
+  const eng = s.engine || {};
+  const caps = lastCaps;
+  const defs = [
+    {label:'3D / Graphics',   val:eng.graphics_3d,  col:'#378ADD'},
+    {label:'Compute',         val:eng.compute,       col:'#7F77DD'},
+    {label:caps.enc_label||'Video Encode', val:eng.video_encode, col:'#1D9E75'},
+    {label:caps.dec_label||'Video Decode', val:eng.video_decode, col:'#EF9F27'},
+    {label:'Copy / DMA',      val:eng.copy_dma,      col:'#D4537E'},
+  ];
+  document.getElementById('engine-bars').innerHTML = defs.map(d=>`
+    <div style="margin-bottom:7px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:3px">
+        <span>${d.label}</span>
+        <span style="font-weight:600;color:var(--text)">${d.val!==null&&d.val!==undefined ? Math.round(d.val)+'%' : '<span class="na">N/A</span>'}</span>
+      </div>
+      <div class="bar-o"><div class="bar-i" style="width:${d.val||0}%;background:${d.col}"></div></div>
+    </div>`).join('');
+}
+
+// ─── Overview — arcs & insight ────────────────────────────────────────────────
+function updateArcs(s) {
+  const da=207, tMax=s.temp_max_c||90, t=s.temp_c, p=s.power_w, pMax=s.power_limit_w||p||1;
+  if(t!=null){
+    const tPct=t/tMax;
+    const arcT=document.getElementById('arc-temp');
+    arcT.setAttribute('stroke-dashoffset',da-(da*tPct));
+    arcT.setAttribute('stroke', t>tMax*.85?'#E24B4A': t>tMax*.7?'#EF9F27':'#1D9E75');
+    document.getElementById('arc-temp-v').textContent = Math.round(t)+'°';
+  }
+  setText('hotspot', na(s.hot_spot_c,'°C'));
+  const fanStr = s.fan_rpm ? s.fan_rpm+' RPM' : (s.fan_pct!=null ? Math.round(s.fan_pct)+'%' : null);
+  setText('fan-val', fanStr ? fanStr : (lastCaps.fan===false?'<span class="na">Passive</span>':'<span class="na">N/A</span>'));
+  if(p!=null){
+    const pPct=p/pMax;
+    const arcP=document.getElementById('arc-pwr');
+    arcP.setAttribute('stroke-dashoffset',da-(da*pPct));
+    arcP.setAttribute('stroke', pPct>.9?'#E24B4A': pPct>.7?'#EF9F27':'#D85A30');
+    document.getElementById('arc-pwr-v').textContent = Math.round(p);
+  }
+  setText('volt', s.voltage_v!=null ? s.voltage_v.toFixed(3)+' V' : (lastCaps.voltage===false?'<span class="na">N/A</span>':'<span class="na">—</span>'));
+  setText('mem-clk-lbl', s.mem_clock_mhz!=null ? (s.mem_clock_mhz/1000).toFixed(2)+' GHz' : '<span class="na">N/A</span>');
+}
+
+function updateInsight(s) {
+  const u=s.util_pct, t=s.temp_c, p=s.power_w, tMax=s.temp_max_c||90;
+  if(u==null||t==null){return;}
+  const avgSec = ((t-30)/(tMax-30) + (p?p/(s.power_limit_w||p||1):0))/2*100;
+  const delta = Math.abs(u-avgSec);
+  let ins = '';
+  if(u>85) ins='High utilization — temperature and power spiking in lockstep. Watch thermals.';
+  else if(u>60&&delta<20) ins='Utilization elevated — temperature and power tracking proportionally.';
+  else if(u<30&&avgSec<40) ins='GPU mostly idle — all metrics low and correlated.';
+  else if(delta>30) ins='Utilization and thermal/power are decoupled — possible throttling.';
+  else ins='Utilization is moderate — temperature and power tracking proportionally.';
+  document.getElementById('ov-insight').textContent = ins;
+}
+
+// ─── Process chart ────────────────────────────────────────────────────────────
+let procChart = null;
+
+function pushProcHist(s) {
+  const live = new Set();
+  (s.processes||[]).forEach(p=>{
+    const k = String(p.pid); live.add(k);
+    if(!procHist[k]) procHist[k]={gpu:[],mem:[],name:p.name,type:p.type};
+    procHist[k].gpu.push(p.gpu_pct);
+    procHist[k].mem.push(p.mem_mb);
+    if(procHist[k].gpu.length>MAXHIST) procHist[k].gpu.shift();
+    if(procHist[k].mem.length>MAXHIST) procHist[k].mem.shift();
+  });
+  Object.keys(procHist).forEach(k=>{ if(!live.has(k)) delete procHist[k]; });
+}
+
+function buildProcDatasets() {
+  const points = windowPoints(PROC_WIN);
+  return Object.keys(procHist).map((k,i)=>{
+    const ph=procHist[k], col=PROC_COLORS[i%PROC_COLORS.length];
+    const active=selectedProc===null||selectedProc===k;
+    return {label:ph.name, data:(procMetric==='gpu'?ph.gpu:ph.mem).slice(-points),
+      borderColor:col, backgroundColor:col+(active?'28':'08'), borderWidth:active?1.5:.5,
+      fill:procMetric==='gpu'?'stack':false, pointRadius:0, tension:.35, spanGaps:true,
+      order:Object.keys(procHist).length-i};
+  });
+}
+
+function buildProcChart() {
+  const ctx = document.getElementById('proc-chart'); if(!ctx) return;
+  if(procChart){procChart.destroy();procChart=null;}
+  const points = windowPoints(PROC_WIN);
+  procChart = new Chart(ctx.getContext('2d'),{type:'line',
+    data:{labels:Array.from({length:points},()=>''),datasets:buildProcDatasets()},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,
+      layout:{padding:{top:4,bottom:4}},interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:false},tooltip:{enabled:false,external:handleProcTooltip}},
+      scales:{x:{display:false,stacked:procMetric==='gpu'},
+        y:{stacked:procMetric==='gpu',min:0,max:procMetric==='gpu'?100:undefined,
+          ticks:{font:{size:9},color:'rgba(128,128,128,.7)',maxTicksLimit:4},
+          grid:{color:'rgba(128,128,128,.07)'}}}
+    }
+  });
+}
+
+function handleProcTooltip(ctx) {
+  const tt=ctx.tooltip, el=document.getElementById('proc-tooltip');
+  if(!tt||tt.opacity===0){el.style.display='none';return;}
+  const unit=procMetric==='gpu'?'%':' GB';
+  const keys=Object.keys(procHist);
+  el.innerHTML=(tt.dataPoints||[]).slice().reverse().map((item,ii)=>{
+    const col=PROC_COLORS[(keys.length-1-ii)%PROC_COLORS.length];
+    const v=procMetric==='gpu'?Math.round(item.raw||0):mbToGb(item.raw||0).toFixed(1);
+    const nm=item.dataset.label;
+    return`<div style="display:flex;align-items:center;gap:6px;margin:2px 0">
+      <span style="width:8px;height:8px;border-radius:2px;background:${col};flex-shrink:0"></span>
+      <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:130px">${nm.length>18?nm.slice(0,18)+'…':nm}</span>
+      <span style="font-weight:600">${v}${unit}</span></div>`;
+  }).join('');
+  el.style.display='block';
+}
+
+function updateProcChart() {
+  if(!procChart){buildProcChart();return;}
+  procChart.data.labels=Array.from({length:windowPoints(PROC_WIN)},()=>'');
+  procChart.data.datasets=buildProcDatasets();
+  procChart.options.scales.x.stacked=procMetric==='gpu';
+  procChart.options.scales.y.stacked=procMetric==='gpu';
+  procChart.options.scales.y.max=procMetric==='gpu'?100:undefined;
+  procChart.update('none');
+}
+
+function renderProcLegend() {
+  const keys=Object.keys(procHist);
+  document.getElementById('proc-legend').innerHTML=keys.map((k,i)=>{
+    const col=PROC_COLORS[i%PROC_COLORS.length], active=selectedProc===null||selectedProc===k;
+    return`<span style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;opacity:${active?1:.35};font-size:11px;color:var(--text2)" onclick="toggleProc('${k}')">
+      <span style="width:10px;height:10px;border-radius:2px;background:${col}"></span>
+      ${procHist[k].name.length>22?procHist[k].name.slice(0,22)+'…':procHist[k].name}</span>`;
+  }).join('');
+}
+
+function renderProcTable() {
+  if(!lastSnap) return;
+  const procs=lastSnap.processes||[];
+  const sort=document.getElementById('proc-sort')?.value||'gpu';
+  const memTotal=lastSnap.memory?.total_mb||1;
+  const memModel=lastSnap.memory?.mem_model||'dedicated';
+  const keys=Object.keys(procHist);
+  const sorted=[...procs].sort((a,b)=>
+    sort==='gpu'?(b.gpu_pct||0)-(a.gpu_pct||0):
+    sort==='mem'?(b.mem_mb||0)-(a.mem_mb||0):
+    a.name.localeCompare(b.name));
+
+  // Update column header
+  const memColLabel={dedicated:'VRAM',unified:'Unified',shared:'Sys mem'}[memModel]||'Mem';
+  setText('th-mem-col', memColLabel);
+  setText('th-spark', formatWindowLabel(PROC_WIN)+' trend');
+
+  // Show method note
+  const hasEstimate = procs.some(p=>p.gpu_pct_source&&p.gpu_pct_source.includes('estimated'));
+  document.getElementById('proc-method-note').innerHTML = hasEstimate
+    ? '<span class="gap-pill" title="GPU% distributed from aggregate using CPU or VRAM weighting">GPU% estimated ★</span>'
+    : lastCaps.per_process_gpu_pct===false
+    ? '<span class="gap-pill">GPU% not available for this vendor</span>'
+    : '';
+
+  document.getElementById('proc-table').innerHTML=sorted.map((p)=>{
+    const k=String(p.pid);
+    const i=keys.indexOf(k);
+    const col=PROC_COLORS[(i>=0?i:0)%PROC_COLORS.length];
+    const active=selectedProc===null||selectedProc===k;
+    const ph=procHist[k];
+    const gSlice=ph?ph.gpu.slice(-windowPoints(PROC_WIN)):[];
+    const memPct=p.mem_mb!=null?Math.min(100,Math.round(p.mem_mb/memTotal*100)):0;
+
+    // Trend
+    const recent=gSlice.slice(-5).filter(v=>v!=null);
+    const older=gSlice.slice(0,5).filter(v=>v!=null);
+    const avgR=recent.length?recent.reduce((a,b)=>a+b,0)/recent.length:0;
+    const avgO=older.length ?older.reduce((a,b)=>a+b,0)/older.length :0;
+    const delta=avgR-avgO;
+    const tCls=delta>3?'trend-up':delta<-3?'trend-dn':'trend-fl';
+    const tSym=delta>3?'▲':delta<-3?'▼':'—';
+    const tVal=Math.abs(delta)>1?Math.round(Math.abs(delta))+'%':'';
+
+    // Sparkline
+    const vals=gSlice.filter(v=>v!=null);
+    const mn=vals.length?Math.min(...vals):0, mx=Math.max(...vals,mn+1);
+    const pts=vals.map((v,j)=>{
+      const x=j/(Math.max(vals.length-1,1))*92;
+      const y=22-((v-mn)/(mx-mn)*18+2);
+      return`${x.toFixed(1)},${y.toFixed(1)}`;
+    }).join(' ');
+    const fp=`0,24 ${pts} 92,24`;
+
+    const typeBadge = p.type==='Compute'?'badge-compute':p.type==='Mixed'?'badge-mixed':'badge-graphics';
+    const gpuDisplay = p.gpu_pct!=null
+      ? Math.round(p.gpu_pct)+'%'+(p.gpu_pct_source?.includes('estimated')?'<sup style="font-size:9px;color:var(--text3)">est</sup>':'')
+      : '<span class="na">N/A</span>';
+
+    return`<div class="proc-row ${selectedProc===k?'selected':''} ${!active?'dimmed':''}" onclick="toggleProc('${k}')" style="display:flex;align-items:center">
+      <div style="width:14px;padding:0 4px"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${col}"></span></div>
+      <div style="flex:1;min-width:0;padding:6px 8px">
+        <div style="font-weight:500;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.name}</div>
+        <div style="font-size:10px;color:var(--text3)">PID ${p.pid}</div>
+      </div>
+      <div style="width:68px;text-align:center"><span class="${typeBadge}">${p.type}</span></div>
+      <div style="width:48px;text-align:right;font-weight:600;font-size:13px;color:${col}">${gpuDisplay}</div>
+      <div style="width:96px;padding:4px 8px">
+        ${vals.length>1
+          ?`<svg width="92" height="24" viewBox="0 0 92 24" style="display:block"><polygon points="${fp}" fill="${col}" opacity=".15"/><polyline points="${pts}" fill="none" stroke="${col}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+          :'<span class="na" style="font-size:10px">building...</span>'}
+      </div>
+      <div style="width:32px;text-align:right;font-size:11px;font-weight:600" class="${tCls}">${tSym}${tVal}</div>
+      <div style="width:68px;text-align:right;font-size:12px;font-weight:500">${p.mem_mb!=null?mbToGb(p.mem_mb).toFixed(1)+' GB':'<span class="na">N/A</span>'}</div>
+      <div style="width:52px;text-align:right">
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">
+          <span style="font-size:11px;color:var(--text2)">${memPct}%</span>
+          <div style="width:36px;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden"><div style="width:${memPct}%;height:100%;background:${col};border-radius:2px"></div></div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function updateProcSummary(s) {
+  const procs=s.processes||[], memTotal=s.memory?.total_mb||1, memModel=s.memory?.mem_model||'dedicated';
+  let tG=0,tM=0; const tc={}; let topG=0,topN='—',topMs='—';
+  procs.forEach(p=>{
+    tG+=(p.gpu_pct||0); tM+=(p.mem_mb||0);
+    tc[p.type]=(tc[p.type]||0)+1;
+    if((p.gpu_pct||0)>topG){topG=p.gpu_pct||0;topN=p.name;topMs=p.mem_mb!=null?mbToGb(p.mem_mb).toFixed(1)+' GB':'—';}
+  });
+  const cG=Math.min(100,Math.round(tG));
+  setText('ps-total', cG+'%'); setBar('psb-total', cG, 100);
+  setText('ps-procs', procs.length);
+  setText('ps-procs-s', Object.entries(tc).map(([t,n])=>`${n} ${t.toLowerCase()}`).join(' · ')||'—');
+  setText('ps-mem-l', memLabel(memModel)+' used');
+  setText('ps-mem', mbToGb(tM).toFixed(1)+' GB'); setBar('psb-mem', tM, memTotal);
+  setText('ps-mem-s', 'of '+mbToGb(memTotal).toFixed(1)+' GB');
+  setText('ps-top', topN.length>14?topN.slice(0,14)+'…':topN);
+  setText('ps-top-s', topG?Math.round(topG)+'% GPU · '+topMs:'—');
+  const memPct=tM/memTotal*100, cShare=(tc['Compute']||0)/Math.max(procs.length,1);
+  let ins='Utilization is moderate. Click a row or legend item to isolate a process.';
+  if(cShare>=.5&&cG>60) ins='Compute workloads dominate. GPU and memory pressure are correlated.';
+  else if(cG>80) ins='GPU near saturation. Check for scheduling contention or thermal throttling.';
+  else if(memPct>80) ins='Memory pressure is high relative to GPU utilization — workloads may be memory-bound.';
+  setText('proc-insight', ins);
+}
+
+function toggleProc(k) { selectedProc=(selectedProc===k)?null:k; renderProcLegend(); renderProcTable(); updateProcChart(); }
+window.toggleProc=toggleProc;
+function setProcMetric(v){procMetric=v;updateProcChart();renderProcTable();} window.setProcMetric=setProcMetric;
+function setProcWin(v){PROC_WIN=parseInt(v);updateProcChart();renderProcTable();} window.setProcWin=setProcWin;
+
+// ─── Memory tab ───────────────────────────────────────────────────────────────
+let memChart=null;
+
+function updateMemoryTab(s) {
+  const m=s.memory; if(!m) return;
+  const col=memColor(m.mem_model), model=m.mem_model;
+  const badge=document.getElementById('mem-badge');
+  if(badge){badge.textContent=memLabel(model);badge.style.background=col+'20';badge.style.color=col;}
+  setText('mem-arch-pill', memArch(model));
+  document.getElementById('mem-static-rows').innerHTML=[
+    ['Memory type',      memLabel(model)],
+    ['Total GPU-accessible', mbToGb(m.total_mb).toFixed(1)+' GB'],
+    ['Currently used',   mbToGb(m.used_mb).toFixed(1)+' GB ('+Math.round(m.used_mb/m.total_mb*100)+'%)'],
+    ['Free',             m.free_mb!=null?mbToGb(m.free_mb).toFixed(1)+' GB':'—'],
+  ].map(([k,v])=>`<div style="display:flex;justify-content:space-between;align-items:baseline;font-size:13px"><span style="color:var(--text2)">${k}</span><span style="font-weight:500">${v}</span></div>`).join('');
+
+  const proc=m.process_used_mb??m.used_mb*.82, res=m.driver_reserved_mb??(m.used_mb*.18), free=m.free_mb??0;
+  const pW=Math.round(proc/m.total_mb*100), rW=Math.round(res/m.total_mb*100);
+  const mainLabel=model==='dedicated'?'VRAM':model==='unified'?'Unified memory (GPU alloc)':'GPU-mapped system RAM';
+  let rows=`<div>
+    <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span style="color:var(--text2)">${mainLabel}</span><span style="font-weight:500">${mbToGb(m.used_mb).toFixed(1)} / ${mbToGb(m.total_mb).toFixed(1)} GB</span></div>
+    <div class="seg-bar"><div class="seg-u" style="background:${col};width:${pW}%"></div><div class="seg-r" style="background:${col};left:${pW}%;width:${rW}%"></div></div>
+    <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:3px">
+      <span>Process: ${mbToGb(proc).toFixed(1)} GB</span><span>Driver: ${mbToGb(res).toFixed(1)} GB</span><span>Free: ${mbToGb(free).toFixed(1)} GB</span>
+    </div></div>`;
+  if(m.host_total_mb && model!=='dedicated') {
+    const hU=m.host_used_mb||m.used_mb, hT=m.host_total_mb;
+    const hpW=Math.round(hU*.82/hT*100), hrW=Math.round(hU*.18/hT*100);
+    rows+=`<div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span style="color:var(--text2)">System RAM (full pool)</span><span style="font-weight:500">${mbToGb(hU).toFixed(1)} / ${mbToGb(hT).toFixed(1)} GB</span></div>
+      <div class="seg-bar"><div class="seg-u" style="background:${col};width:${hpW}%"></div><div class="seg-r" style="background:${col};left:${hpW}%;width:${hrW}%"></div></div>
+    </div>`;
+  }
+  document.getElementById('mem-alloc-rows').innerHTML=rows;
+  document.getElementById('leg-proc').style.background=col;
+  document.getElementById('leg-drv').style.background=col;
+  setText('mem-bw-note', s.gaps?.mem_bandwidth||
+    (model==='dedicated'?'Dedicated bandwidth — not shared with CPU.':
+     model==='unified'  ?'Unified bandwidth shared between CPU, GPU, and other engines.':
+                          'Shared DDR bandwidth — GPU and CPU contend for the same pool.'));
+}
+
+function updateMemChart() {
+  if(!lastSnap) return;
+  const ctx=document.getElementById('mem-chart'); if(!ctx) return;
+  const keys=Object.keys(procHist);
+  const datasets=keys.map((k,i)=>{
+    const col=PROC_COLORS[i%PROC_COLORS.length];
+    return {label:procHist[k].name, data:procHist[k].mem.slice(-windowPoints(MEM_WIN)),
+      borderColor:col, backgroundColor:col+'18', borderWidth:1.5, fill:false, pointRadius:0, tension:.35, spanGaps:true};
+  });
+  document.getElementById('mem-chart-legend').innerHTML=keys.map((k,i)=>`
+    <span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)">
+      <span style="width:10px;height:10px;border-radius:2px;background:${PROC_COLORS[i%PROC_COLORS.length]}"></span>
+      ${procHist[k].name.length>20?procHist[k].name.slice(0,20)+'…':procHist[k].name}</span>`).join('');
+  if(memChart){
+    memChart.data.labels=Array.from({length:windowPoints(MEM_WIN)},()=>'');
+    memChart.data.datasets=datasets; memChart.update('none');
+  } else {
+    memChart=new Chart(ctx.getContext('2d'),{type:'line',
+      data:{labels:Array.from({length:windowPoints(MEM_WIN)},()=>''),datasets},
+      options:{responsive:true,maintainAspectRatio:false,animation:false,
+        layout:{padding:{top:4,bottom:4}},interaction:{mode:'index',intersect:false},
+        plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,
+          callbacks:{label:c=>c.dataset.label.slice(0,14)+': '+mbToGb(c.raw||0).toFixed(1)+' GB'}}},
+        scales:{x:{display:false},y:{min:0,ticks:{font:{size:9},color:'rgba(128,128,128,.7)',maxTicksLimit:4},grid:{color:'rgba(128,128,128,.07)'}}}
+      }
+    });
+  }
+}
+
+function setMemWin(v){MEM_WIN=parseInt(v);updateMemChart();} window.setMemWin=setMemWin;
+
+// ─── Device info tab ──────────────────────────────────────────────────────────
+function updateDeviceTab(s) {
+  const m = s.memory, caps = lastCaps;
+  const hw = [
+    ['GPU',         s.device_name||'—'],
+    ['Vendor',      (s.vendor||'—').replace('_',' ').toUpperCase()],
+    ['Driver',      s.driver_version||'—'],
+    ['Compute API', s.compute_api||'—'],
+    ['PCIe / bus',  s.pcie_info || (s.bus_id ? s.bus_id : 'Integrated')],
+    ['Temp max',    s.temp_max_c ? s.temp_max_c+'°C' : '—'],
+    ['Power limit', s.power_limit_w ? Math.round(s.power_limit_w)+' W' : '—'],
+  ];
+  const memRows = [
+    ['Memory type',    m ? memLabel(m.mem_model) : '—'],
+    ['Total capacity', m ? mbToGb(m.total_mb).toFixed(1)+' GB' : '—'],
+    ['Mem peak BW',    m?.peak_bandwidth_gbs ? m.peak_bandwidth_gbs+' GB/s' : '—'],
+    ['GPU clock (cur)',s.clock_mhz ? (s.clock_mhz/1000).toFixed(2)+' GHz' : '—'],
+    ['GPU clock (max)',s.max_clock_mhz ? (s.max_clock_mhz/1000).toFixed(2)+' GHz' : '—'],
+    ['Mem clock',      s.mem_clock_mhz ? (s.mem_clock_mhz/1000).toFixed(2)+' GHz' : (caps.mem_clock===false?'N/A (shared)':'—')],
+  ];
+  const srcRows = Object.entries(s.sources||{});
+  const gapRows = Object.entries(s.gaps||{});
+
+  document.getElementById('dev-hw').innerHTML=hw.map(([k,v])=>`<tr><td>${k}</td><td>${v}</td></tr>`).join('');
+  document.getElementById('dev-mem-tbl').innerHTML=memRows.map(([k,v])=>`<tr><td>${k}</td><td>${v}</td></tr>`).join('');
+  document.getElementById('dev-sources').innerHTML=srcRows.length
+    ? srcRows.map(([k,v])=>`<tr><td style="color:var(--text3)">${k}</td><td><span class="src-pill">${v}</span></td></tr>`).join('')
+    : '<tr><td colspan="2" style="color:var(--text3)">No source metadata yet</td></tr>';
+  document.getElementById('dev-gaps').innerHTML=gapRows.length
+    ? gapRows.map(([k,v])=>`<div style="display:flex;gap:8px;align-items:flex-start;padding:7px 10px;background:rgba(239,159,39,.07);border-radius:6px;border:.5px solid rgba(239,159,39,.2)">
+        <span class="gap-pill" style="flex-shrink:0">${k}</span>
+        <span style="font-size:11px;color:var(--text2)">${v}</span></div>`).join('')
+    : '<div style="font-size:12px;color:var(--text2)">No known gaps for this device.</div>';
+}
+
+// ─── Tab switching ────────────────────────────────────────────────────────────
+function switchTab(name, el) {
+  document.querySelectorAll('.pane').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  el.classList.add('active');
+  setTimeout(()=>{
+    if(name==='overview') OV_TRACKS.forEach(tr=>{ if(ovCharts[tr.id]) ovCharts[tr.id].resize(); });
+    if(name==='processes' && lastSnap){ renderProcLegend(); renderProcTable(); buildProcChart(); }
+    if(name==='memory' && lastSnap){ updateMemoryTab(lastSnap); updateMemChart(); }
+    if(name==='device' && lastSnap){ updateDeviceTab(lastSnap); }
+  }, 40);
+}
+window.switchTab=switchTab;
+
+// ─── Master update ────────────────────────────────────────────────────────────
+function updateAll(s) {
+  updateHeader(s);
+  updateKPI(s);
+  updateEngines(s);
+  updateArcs(s);
+  updateInsight(s);
+  pushOvHist(s);
+  pushProcHist(s);
+  updateMemoryTab(s);
+
+  const activeTab = document.querySelector('.pane.active')?.id;
+  if(activeTab==='tab-processes') { renderProcLegend(); renderProcTable(); updateProcSummary(s); updateProcChart(); }
+  if(activeTab==='tab-memory')    { updateMemChart(); }
+  if(activeTab==='tab-device')    { updateDeviceTab(s); }
+  // Always keep proc summary fresh so switching tabs shows current data
+  updateProcSummary(s);
+}
+
+// ─── Boot ─────────────────────────────────────────────────────────────────────
+initOvCharts();
+connect();
+</script>
+</body>
+</html>
