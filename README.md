@@ -1,86 +1,193 @@
 # GPU Monitor
 
-GPU Monitor is a small FastAPI app that serves a live GPU telemetry dashboard.
+GPU Monitor is a small FastAPI app that serves a live GPU telemetry dashboard for the GPU already installed on your own machine.
 
-## What changed
+It is designed to run locally, then expose a browser dashboard over HTTP so you can open it from the same machine or another system on your LAN.
 
-This project can now be packaged as a wheel and installed with a `gpu-monitor` command, so another machine does not need a full repository checkout.
+## What it supports today
 
-## Best distribution options
+- Windows PCs with Intel, NVIDIA, or AMD GPUs through `dxdiag`, Windows GPU performance counters, and `nvidia-smi` when present
+- Linux systems with NVIDIA GPUs through `nvidia-smi`
+- Linux Intel integrated GPUs through `intel_gpu_top`
+- Linux NVIDIA Jetson systems through `tegrastats`
 
-1. Build a wheel once and copy that file to any target machine.
-2. Publish the wheel to PyPI or attach it to a GitHub Release.
+Metric coverage varies by platform and driver. When a vendor API does not expose a field, the dashboard shows that gap instead of crashing.
 
-For an Ubuntu Intel NUC, the wheel approach is the most practical because the host still needs Intel GPU telemetry tools and access to `/dev/dri`.
+## Quick start
 
-## Local build
-
-From the repository root:
-
-```bash
-python -m pip install --upgrade build
-python -m build
-```
-
-That creates a wheel in `dist/`, for example:
+### 1. Clone the repo
 
 ```bash
-dist/gpu_monitor-0.1.0-py3-none-any.whl
+git clone <your-repo-url>
+cd gpu_monitor
 ```
 
-## Install on Ubuntu
+### 2. Create a virtual environment
 
-Install system prerequisites first:
+Windows PowerShell:
+
+```powershell
+py -3.10 -m venv .venv
+.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+```
+
+Linux:
+
+```bash
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install --upgrade pip
+```
+
+### 3. Install the app
+
+```bash
+python -m pip install .
+```
+
+### 4. Start the dashboard
+
+```bash
+gpu-monitor --host 127.0.0.1 --port 8000
+```
+
+Open `http://127.0.0.1:8000`.
+
+To make it reachable from another machine on your network:
+
+```bash
+gpu-monitor --host 0.0.0.0 --port 8000
+```
+
+Then open `http://<hostname-or-ip>:8000`.
+
+## Platform prerequisites
+
+### Windows
+
+Install Python 3.10+ and run:
+
+```powershell
+python -m pip install .
+gpu-monitor --host 127.0.0.1 --port 8000
+```
+
+Notes:
+
+- Intel and AMD live metrics come from Windows GPU counters
+- NVIDIA cards use `nvidia-smi` when available for richer telemetry
+- Some integrated GPU fields like temperature, power, or per-process GPU% may not be available on Windows
+
+### Ubuntu or other Linux with Intel iGPU
+
+Install the Intel telemetry tool first:
 
 ```bash
 sudo apt update
 sudo apt install -y python3 python3-pip python3-venv intel-gpu-tools
 ```
 
-If `intel_gpu_top` needs elevated access on that machine, run the service with sufficient permissions or add the account to the appropriate render/video groups.
+If `intel_gpu_top` needs elevated access, run the service with sufficient permissions or add the account to the appropriate render or video groups.
 
-Install the wheel:
+Then install and run:
 
 ```bash
 python3 -m venv .venv
 . .venv/bin/activate
 python -m pip install --upgrade pip
-python -m pip install /path/to/dist/gpu_monitor-0.1.0-py3-none-any.whl
-```
-
-Start the dashboard so it is reachable from another machine on your LAN:
-
-```bash
+python -m pip install .
 gpu-monitor --host 0.0.0.0 --port 8000
 ```
 
-Open:
+### Linux with NVIDIA GPU
+
+Make sure the NVIDIA driver and `nvidia-smi` are installed and working:
+
+```bash
+nvidia-smi
+```
+
+Then install and run:
+
+```bash
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install .
+gpu-monitor --host 0.0.0.0 --port 8000
+```
+
+### NVIDIA Jetson
+
+The dashboard detects Jetson boards through `tegrastats`.
+
+Install and run:
+
+```bash
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install .
+gpu-monitor --host 0.0.0.0 --port 8000
+```
+
+## Build a distributable wheel
+
+If you want other people to try it without cloning the repo, build a wheel and share the file:
+
+```bash
+python -m pip install --upgrade build
+python -m build
+```
+
+That creates files in `dist/` such as:
 
 ```text
-http://<ubuntu-hostname-or-ip>:8000
+dist/gpu_monitor-0.1.0-py3-none-any.whl
+```
+
+Someone else can then install it with:
+
+```bash
+python -m pip install /path/to/dist/gpu_monitor-0.1.0-py3-none-any.whl
 ```
 
 ## Development run
 
-From a source checkout, the old workflow still works:
+You can still run it straight from a source checkout:
 
 ```bash
 python main.py --host 127.0.0.1 --port 8000 --reload
 ```
 
-## Publish for anyone to use
+## Publish options
 
-If you want anyone to install it without downloading the repository, publish one of these:
+If you want anyone to be able to install it without downloading the repository, the easiest next steps are:
 
-1. A wheel file in GitHub Releases.
-2. A package to PyPI, so users can run `pip install gpu-monitor`.
+1. Attach the built wheel to a GitHub Release
+2. Publish the package to PyPI
 
-## Ubuntu notes
+## GitHub Actions release flow
 
-Intel integrated GPUs on Ubuntu usually expose telemetry through `intel_gpu_top` from `intel-gpu-tools`.
+This repo now includes a GitHub Actions workflow at [.github/workflows/package.yml](/c:/Users/kianaharris/OneDrive%20-%20Microsoft/Desktop/gpu_monitor/.github/workflows/package.yml).
 
-This means:
+It does two things:
 
-1. The host must have the Intel tooling installed.
-2. The process must be able to read GPU telemetry.
-3. A Python wheel is a better default than a container for this target, unless you explicitly want to manage `/dev/dri` passthrough.
+1. On every push to `main` and every pull request, it builds the source distribution and wheel
+2. When you push a tag like `v0.1.0`, it creates a GitHub Release and uploads the files from `dist/`
+
+Example:
+
+```bash
+git tag v0.1.0
+git push origin main --tags
+```
+
+After that, users can download the wheel from the GitHub Release page and install it with `pip`.
+
+## Known limitations
+
+- Linux Intel support currently has better utilization coverage than memory coverage
+- Jetson support depends on the exact `tegrastats` output format on the target device
+- Per-process GPU attribution is not available on every vendor or OS path

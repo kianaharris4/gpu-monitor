@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=69", "wheel"]
+requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -8,10 +8,22 @@ version = "0.1.0"
 description = "Portable GPU telemetry dashboard for Windows and Linux"
 readme = "README.md"
 requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [
+  { name = "Kiana Harris" }
+]
 dependencies = [
-    "fastapi",
-    "uvicorn",
-    "websockets",
+  "fastapi",
+  "uvicorn",
+  "websockets",
+]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: Microsoft :: Windows",
+  "Operating System :: POSIX :: Linux",
+  "Framework :: FastAPI",
 ]
 
 [project.scripts]
@@ -21,5 +33,5 @@ gpu-monitor = "main:main"
 packages = ["collectors"]
 py-modules = ["main", "schema"]
 
-[tool.setuptools.data-files]
-"share/gpu-monitor" = ["gpu_monitor_dashboard.html"]
+[tool.setuptools.package-data]
+collectors = ["gpu_monitor_dashboard.html"]
