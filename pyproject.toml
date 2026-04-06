@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gpu-monitor"
+version = "0.1.0"
+description = "Portable GPU telemetry dashboard for Windows and Linux"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "websockets",
+]
+
+[project.scripts]
+gpu-monitor = "main:main"
+
+[tool.setuptools]
+packages = ["collectors"]
+py-modules = ["main", "schema"]
+
+[tool.setuptools.data-files]
+"share/gpu-monitor" = ["gpu_monitor_dashboard.html"]
