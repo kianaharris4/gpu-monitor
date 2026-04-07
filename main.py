@@ -15,13 +15,13 @@ collector = None
 
 
 def _resolve_dashboard_ref():
-    packaged_dashboard = files("collectors").joinpath("gpu_monitor_dashboard.html")
-    if packaged_dashboard.is_file():
-        return packaged_dashboard
-
     local_dashboard = Path(__file__).with_name("gpu_monitor_dashboard.html")
     if local_dashboard.is_file():
         return local_dashboard
+
+    packaged_dashboard = files("collectors").joinpath("gpu_monitor_dashboard.html")
+    if packaged_dashboard.is_file():
+        return packaged_dashboard
 
     raise FileNotFoundError("gpu_monitor_dashboard.html could not be located")
 

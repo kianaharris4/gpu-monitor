@@ -106,6 +106,16 @@ select{font-size:11px;padding:3px 7px;border-radius:5px;border:.5px solid var(--
 
 <!-- ════════ OVERVIEW ════════ -->
 <div id="tab-overview" class="pane active">
+  <div class="g2" style="margin-bottom:12px">
+    <div class="card" style="padding:14px 16px">
+      <div style="font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Device snapshot</div>
+      <table class="dtable"><tbody id="ov-dev-hw"></tbody></table>
+    </div>
+    <div class="card" style="padding:14px 16px">
+      <div style="font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Memory &amp; interconnect</div>
+      <table class="dtable"><tbody id="ov-dev-mem"></tbody></table>
+    </div>
+  </div>
   <div class="card" style="margin-bottom:12px">
     <div style="padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between">
       <div>
@@ -875,7 +885,7 @@ function updateMemChart() {
 function setMemWin(v){MEM_WIN=parseInt(v);updateMemChart();} window.setMemWin=setMemWin;
 
 // ─── Device info tab ──────────────────────────────────────────────────────────
-function updateDeviceTab(s) {
+function deviceInfoRows(s) {
   const m = s.memory, caps = lastCaps;
   const hw = [
     ['GPU',         s.device_name||'—'],
@@ -894,11 +904,20 @@ function updateDeviceTab(s) {
     ['GPU clock (max)',s.max_clock_mhz ? (s.max_clock_mhz/1000).toFixed(2)+' GHz' : '—'],
     ['Mem clock',      s.mem_clock_mhz ? (s.mem_clock_mhz/1000).toFixed(2)+' GHz' : (caps.mem_clock===false?'N/A (shared)':'—')],
   ];
+  return { hw, memRows };
+}
+
+function updateDeviceTab(s) {
+  const { hw, memRows } = deviceInfoRows(s);
   const srcRows = Object.entries(s.sources||{});
   const gapRows = Object.entries(s.gaps||{});
 
-  document.getElementById('dev-hw').innerHTML=hw.map(([k,v])=>`<tr><td>${k}</td><td>${v}</td></tr>`).join('');
-  document.getElementById('dev-mem-tbl').innerHTML=memRows.map(([k,v])=>`<tr><td>${k}</td><td>${v}</td></tr>`).join('');
+  const hwHtml = hw.map(([k,v])=>`<tr><td>${k}</td><td>${v}</td></tr>`).join('');
+  const memHtml = memRows.map(([k,v])=>`<tr><td>${k}</td><td>${v}</td></tr>`).join('');
+  document.getElementById('dev-hw').innerHTML=hwHtml;
+  document.getElementById('dev-mem-tbl').innerHTML=memHtml;
+  document.getElementById('ov-dev-hw').innerHTML=hwHtml;
+  document.getElementById('ov-dev-mem').innerHTML=memHtml;
   document.getElementById('dev-sources').innerHTML=srcRows.length
     ? srcRows.map(([k,v])=>`<tr><td style="color:var(--text3)">${k}</td><td><span class="src-pill">${v}</span></td></tr>`).join('')
     : '<tr><td colspan="2" style="color:var(--text3)">No source metadata yet</td></tr>';
@@ -928,6 +947,7 @@ window.switchTab=switchTab;
 function updateAll(s) {
   updateHeader(s);
   updateKPI(s);
+  updateDeviceTab(s);
   updateEngines(s);
   updateArcs(s);
   updateInsight(s);
@@ -938,7 +958,6 @@ function updateAll(s) {
   const activeTab = document.querySelector('.pane.active')?.id;
   if(activeTab==='tab-processes') { renderProcLegend(); renderProcTable(); updateProcSummary(s); updateProcChart(); }
   if(activeTab==='tab-memory')    { updateMemChart(); }
-  if(activeTab==='tab-device')    { updateDeviceTab(s); }
   // Always keep proc summary fresh so switching tabs shows current data
   updateProcSummary(s);
 }

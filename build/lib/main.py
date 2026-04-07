@@ -1,7 +1,6 @@
-import argparse
 import asyncio
+import argparse
 import os
-from importlib.metadata import PackageNotFoundError, distribution
 from pathlib import Path
 
 import uvicorn
@@ -9,29 +8,25 @@ from fastapi import FastAPI, WebSocket
 from fastapi.responses import FileResponse
 
 from collectors.factory import get_collector
+from importlib.resources import as_file, files
 
 app = FastAPI()
 collector = None
 
 
-def resolve_dashboard_path() -> Path:
-    local_path = Path(__file__).with_name("gpu_monitor_dashboard.html")
-    if local_path.exists():
-        return local_path
+def _resolve_dashboard_ref():
+    packaged_dashboard = files("collectors").joinpath("gpu_monitor_dashboard.html")
+    if packaged_dashboard.is_file():
+        return packaged_dashboard
 
-    try:
-        dist = distribution("gpu-monitor")
-    except PackageNotFoundError as exc:
-        raise FileNotFoundError("gpu_monitor_dashboard.html could not be located") from exc
-
-    for dist_file in dist.files or []:
-        if Path(dist_file).name != "gpu_monitor_dashboard.html":
-            continue
-        candidate = Path(dist.locate_file(dist_file))
-        if candidate.exists():
-            return candidate
+    local_dashboard = Path(__file__).with_name("gpu_monitor_dashboard.html")
+    if local_dashboard.is_file():
+        return local_dashboard
 
     raise FileNotFoundError("gpu_monitor_dashboard.html could not be located")
+
+
+dashboard_ref = _resolve_dashboard_ref()
 
 
 def get_cached_collector():
@@ -41,45 +36,18 @@ def get_cached_collector():
     return collector
 
 
-def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Serve the GPU monitor dashboard")
-    parser.add_argument(
-        "--host",
-        default=os.getenv("GPU_MONITOR_HOST", "0.0.0.0"),
-        help="Host interface to bind to",
-    )
-    parser.add_argument(
-        "--port",
-        type=int,
-        default=int(os.getenv("GPU_MONITOR_PORT", "8000")),
-        help="TCP port to listen on",
-    )
-    parser.add_argument(
-        "--reload",
-        action="store_true",
-        help="Enable auto-reload for local development",
-    )
-    parser.add_argument(
-        "--log-level",
-        default=os.getenv("GPU_MONITOR_LOG_LEVEL", "info"),
-        choices=["critical", "error", "warning", "info", "debug", "trace"],
-        help="Uvicorn log level",
-    )
-    return parser
-
-
-dashboard_path = resolve_dashboard_path()
-
-
 @app.get("/")
 async def dashboard():
-    return FileResponse(dashboard_path)
+    if isinstance(dashboard_ref, Path):
+        return FileResponse(dashboard_ref)
+
+    with as_file(dashboard_ref) as dashboard_path:
+        return FileResponse(dashboard_path)
 
 
 @app.get("/api/snapshot")
 async def snapshot():
-    active_collector = get_cached_collector()
-    snapshots = active_collector.collect()
+    snapshots = get_cached_collector().collect()
     if not isinstance(snapshots, list):
         snapshots = [snapshots]
     return {"gpus": [s.to_dict() for s in snapshots]}
@@ -87,11 +55,10 @@ async def snapshot():
 
 @app.websocket("/ws")
 async def websocket_endpoint(ws: WebSocket):
-    active_collector = get_cached_collector()
     await ws.accept()
     while True:
         try:
-            snapshots = active_collector.collect()
+            snapshots = get_cached_collector().collect()
             if not isinstance(snapshots, list):
                 snapshots = [snapshots]
             await ws.send_json({"gpus": [s.to_dict() for s in snapshots]})
@@ -100,15 +67,29 @@ async def websocket_endpoint(ws: WebSocket):
         await asyncio.sleep(1)
 
 
-def main(argv=None):
-    args = build_parser().parse_args(argv)
-    uvicorn.run(
-        app,
-        host=args.host,
-        port=args.port,
-        reload=args.reload,
-        log_level=args.log_level,
+def main():
+    parser = argparse.ArgumentParser(description="Run the GPU Monitor dashboard server.")
+    parser.add_argument(
+        "--host",
+        default=os.getenv("GPU_MONITOR_HOST", "0.0.0.0"),
+        help="Host interface to bind.",
     )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=int(os.getenv("GPU_MONITOR_PORT", "8000")),
+        help="Port to listen on.",
+    )
+    parser.add_argument("--reload", action="store_true", help="Enable auto-reload for development.")
+    parser.add_argument(
+        "--log-level",
+        default=os.getenv("GPU_MONITOR_LOG_LEVEL", "info"),
+        choices=["critical", "error", "warning", "info", "debug", "trace"],
+        help="Uvicorn log level.",
+    )
+    args = parser.parse_args()
+
+    uvicorn.run("main:app", host=args.host, port=args.port, reload=args.reload, log_level=args.log_level)
 
 
 if __name__ == "__main__":

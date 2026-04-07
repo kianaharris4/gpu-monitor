@@ -1,3 +1,4 @@
+LICENSE
 README.md
 gpu_monitor_dashboard.html
 main.py
@@ -7,6 +8,7 @@ collectors/__init__.py
 collectors/amd.py
 collectors/base.py
 collectors/factory.py
+collectors/gpu_monitor_dashboard.html
 collectors/intel.py
 collectors/jetson.py
 collectors/nvidia.py
