@@ -2,10 +2,11 @@ import asyncio
 import argparse
 import os
 from pathlib import Path
+from importlib.metadata import version, PackageNotFoundError
 
 import uvicorn
 from fastapi import FastAPI, WebSocket
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 
 from collectors.factory import get_collector
 from importlib.resources import as_file, files
@@ -28,6 +29,11 @@ def _resolve_dashboard_ref():
 
 dashboard_ref = _resolve_dashboard_ref()
 
+try:
+    APP_VERSION = version("gpu-monitor")
+except PackageNotFoundError:
+    APP_VERSION = "dev"
+
 
 def get_cached_collector():
     global collector
@@ -45,12 +51,28 @@ async def dashboard():
         return FileResponse(dashboard_path)
 
 
+@app.get("/api/about")
+async def about():
+    dashboard_path = str(dashboard_ref) if isinstance(dashboard_ref, Path) else str(dashboard_ref)
+    collector_name = get_cached_collector().__class__.__name__
+    return JSONResponse(
+        {
+            "app_version": APP_VERSION,
+            "dashboard_ref": dashboard_path,
+            "collector": collector_name,
+        }
+    )
+
+
 @app.get("/api/snapshot")
 async def snapshot():
-    snapshots = get_cached_collector().collect()
-    if not isinstance(snapshots, list):
-        snapshots = [snapshots]
-    return {"gpus": [s.to_dict() for s in snapshots]}
+    try:
+        snapshots = get_cached_collector().collect()
+        if not isinstance(snapshots, list):
+            snapshots = [snapshots]
+        return {"gpus": [s.to_dict() for s in snapshots]}
+    except Exception as e:
+        return JSONResponse({"error": str(e), "gpus": []}, status_code=200)
 
 
 @app.websocket("/ws")
@@ -88,6 +110,10 @@ def main():
         help="Uvicorn log level.",
     )
     args = parser.parse_args()
+
+    dashboard_path = str(dashboard_ref) if isinstance(dashboard_ref, Path) else str(dashboard_ref)
+    print(f"[INFO] gpu-monitor version: {APP_VERSION}")
+    print(f"[INFO] Dashboard source: {dashboard_path}")
 
     uvicorn.run("main:app", host=args.host, port=args.port, reload=args.reload, log_level=args.log_level)
 

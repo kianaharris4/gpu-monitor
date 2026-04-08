@@ -6,6 +6,7 @@ from collectors.jetson import JetsonCollector
 from collectors.nvidia import NvidiaCollector
 from collectors.amd import AMDCollector
 from collectors.intel import IntelCollector
+from collectors.null import NullCollector
 
 def get_collector():
     if os.name == "nt":
@@ -26,4 +27,6 @@ def get_collector():
             print(f"[INFO] Using collector: {c.__class__.__name__}")
             return c
 
-    raise RuntimeError("No supported GPU detected")
+    reason = "No supported GPU detected. On Ubuntu Intel systems, install intel-gpu-tools for live utilization and verify /sys/class/drm or lspci can see the Intel adapter."
+    print(f"[WARN] {reason}")
+    return NullCollector(reason)

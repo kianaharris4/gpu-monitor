@@ -146,13 +146,13 @@ python -m build
 That creates files in `dist/` such as:
 
 ```text
-dist/gpu_monitor-0.1.1-py3-none-any.whl
+dist/gpu_monitor-0.1.2-py3-none-any.whl
 ```
 
 Someone else can then install it with:
 
 ```bash
-python -m pip install /path/to/dist/gpu_monitor-0.1.1-py3-none-any.whl
+python -m pip install /path/to/dist/gpu_monitor-0.1.2-py3-none-any.whl
 ```
 
 ## Development run
