@@ -43,7 +43,7 @@ python -m pip install --upgrade pip
 ### 3. Install the app
 
 ```bash
-python -m pip install .
+python -m pip install --force-reinstall .
 ```
 
 ### 4. Start the dashboard
@@ -69,7 +69,7 @@ Then open `http://<hostname-or-ip>:8000`.
 Install Python 3.10+ and run:
 
 ```powershell
-python -m pip install .
+python -m pip install --force-reinstall .
 gpu-monitor --host 127.0.0.1 --port 8000
 ```
 
@@ -90,13 +90,15 @@ sudo apt install -y python3 python3-pip python3-venv intel-gpu-tools
 
 If `intel_gpu_top` needs elevated access, run the service with sufficient permissions or add the account to the appropriate render or video groups.
 
+If you update from an older local build, reinstall with `--force-reinstall` so the latest packaged dashboard HTML is used.
+
 Then install and run:
 
 ```bash
 python3 -m venv .venv
 . .venv/bin/activate
 python -m pip install --upgrade pip
-python -m pip install .
+python -m pip install --force-reinstall .
 gpu-monitor --host 0.0.0.0 --port 8000
 ```
 
@@ -114,7 +116,7 @@ Then install and run:
 python3 -m venv .venv
 . .venv/bin/activate
 python -m pip install --upgrade pip
-python -m pip install .
+python -m pip install --force-reinstall .
 gpu-monitor --host 0.0.0.0 --port 8000
 ```
 
@@ -128,7 +130,7 @@ Install and run:
 python3 -m venv .venv
 . .venv/bin/activate
 python -m pip install --upgrade pip
-python -m pip install .
+python -m pip install --force-reinstall .
 gpu-monitor --host 0.0.0.0 --port 8000
 ```
 
@@ -144,13 +146,13 @@ python -m build
 That creates files in `dist/` such as:
 
 ```text
-dist/gpu_monitor-0.1.0-py3-none-any.whl
+dist/gpu_monitor-0.1.1-py3-none-any.whl
 ```
 
 Someone else can then install it with:
 
 ```bash
-python -m pip install /path/to/dist/gpu_monitor-0.1.0-py3-none-any.whl
+python -m pip install /path/to/dist/gpu_monitor-0.1.1-py3-none-any.whl
 ```
 
 ## Development run
