@@ -57,7 +57,10 @@ class WindowsCollector:
             snap.gaps["per_process_gpu_pct"] = "Per-process Windows GPU attribution is not wired up yet."
 
             if vendor == "nvidia":
-                self._apply_nvidia_metrics(snap, card, nvidia_rows)
+                luid = self._pick_luid_for_discrete(counters, used_luids)
+                if luid:
+                    used_luids.add(luid)
+                self._apply_nvidia_metrics(snap, card, nvidia_rows, counters, luid)
             else:
                 luid = self._pick_luid_for_integrated(counters, used_luids)
                 if luid:
@@ -263,7 +266,7 @@ $samples | ConvertTo-Json -Compress
             return "amd"
         return manufacturer or "unknown"
 
-    def _apply_nvidia_metrics(self, snap, card, nvidia_rows):
+    def _apply_nvidia_metrics(self, snap, card, nvidia_rows, counters, luid):
         target_name = _normalize_name(card.get("name"))
         match = None
         for row in nvidia_rows:
@@ -290,22 +293,39 @@ $samples | ConvertTo-Json -Compress
             "mem_clock": True,
         })
         snap.sources["telemetry"] = "nvidia-smi"
+        if luid:
+            snap.sources["utilization"] = "windows-performance-counters"
+        else:
+            snap.sources["utilization"] = "nvidia-smi"
 
         if not match:
             snap.gaps["telemetry"] = "nvidia-smi is unavailable, so live NVIDIA metrics are missing."
             return
 
         snap.device_name = match["name"]
-        snap.driver_version = match["driver_version"]
         snap.bus_id = match["pci_bus_id"]
         snap.sources["nvidia_index"] = str(match["index"])
-        snap.util_pct = match["util"]
+        snap.sources["driver_package_version"] = match["driver_version"]
         snap.temp_c = match["temp"]
         snap.power_w = match["power"]
         snap.power_limit_w = match["power_limit"]
         snap.clock_mhz = match["clock"]
         snap.mem_clock_mhz = match["mem_clock"]
         snap.max_clock_mhz = match["max_clock"]
+
+        if luid:
+            engine_info = counters["engines"].get(luid, {})
+            rollup = self._roll_up_engines(engine_info)
+            snap.util_pct = rollup["total"]
+            snap.engine = rollup["engine"]
+            snap.sources["luid"] = luid
+            if rollup["total"] is None:
+                snap.gaps["utilization"] = "No active GPU engine counter matched this NVIDIA adapter."
+                snap.util_pct = match["util"]
+                snap.sources["utilization"] = "nvidia-smi"
+        else:
+            snap.gaps["utilization"] = "No Windows GPU engine counter matched this NVIDIA adapter; falling back to nvidia-smi utilization."
+            snap.util_pct = match["util"]
 
     def _apply_windows_counter_metrics(self, snap, card, counters, luid):
         system_total_mb = self._system_ram_mb()
@@ -362,6 +382,20 @@ $samples | ConvertTo-Json -Compress
             return None
         candidates.sort(reverse=True)
         return candidates[0][2]
+
+    def _pick_luid_for_discrete(self, counters, used_luids):
+        candidates = []
+        for luid in set(counters["dedicated_mb"]) | set(counters["engines"]):
+            if luid in used_luids:
+                continue
+            dedicated = counters["dedicated_mb"].get(luid, 0.0)
+            shared = counters["shared_mb"].get(luid, 0.0)
+            util = self._roll_up_engines(counters["engines"].get(luid, {}))["total"] or 0.0
+            candidates.append((dedicated, util, -shared, luid))
+        if not candidates:
+            return None
+        candidates.sort(reverse=True)
+        return candidates[0][3]
 
     def _roll_up_engines(self, engine_info):
         totals = {
