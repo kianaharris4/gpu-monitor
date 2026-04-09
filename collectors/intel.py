@@ -17,7 +17,7 @@ class IntelCollector:
     }
 
     def detect(self):
-        return self._find_intel_device() is not None
+        return self._find_intel_device() is not None or shutil.which("intel_gpu_top") is not None
 
     def collect(self):
         snap = GPUSnapshot(vendor="intel", compute_api="Intel")
@@ -27,6 +27,9 @@ class IntelCollector:
             snap.device_name = device.get("name") or "Intel GPU"
             snap.bus_id = device.get("bus_id")
             snap.pcie_info = device.get("bus_id")
+        else:
+            snap.device_name = "Intel GPU"
+            snap.gaps["gpu"] = "Fell back to a generic Intel GPU name because lspci/sysfs metadata was unavailable."
 
         snap.memory = MemoryInfo(mem_model="unified", total_mb=0, used_mb=0)
         snap.sources["gpu"] = "lspci" if device and device.get("source") == "lspci" else "sysfs"
@@ -48,17 +51,7 @@ class IntelCollector:
             return [snap]
 
         try:
-            result = subprocess.check_output(
-                [intel_gpu_top, "-J", "-s", "100", "-o", "-"],
-                timeout=2,
-                stderr=subprocess.DEVNULL,
-            ).decode("utf-8", errors="ignore")
-
-            lines = [line for line in result.splitlines() if line.strip().startswith("{")]
-            if not lines:
-                raise RuntimeError("intel_gpu_top did not return JSON samples")
-
-            data = json.loads(lines[-1])
+            data = self._read_intel_gpu_top_json(intel_gpu_top)
             engines = data.get("engines", {})
             busy_values = [
                 float(engine.get("busy", 0) or 0)
@@ -74,6 +67,50 @@ class IntelCollector:
         snap.gaps["power"] = "Intel Linux power telemetry is not wired up yet."
         snap.gaps["temperature"] = "Intel Linux temperature telemetry is not wired up yet."
         return [snap]
+
+    def _read_intel_gpu_top_json(self, intel_gpu_top):
+        attempts = [
+            [intel_gpu_top, "-J", "-s", "100", "-o", "-"],
+            [intel_gpu_top, "-J", "-s", "100"],
+            [intel_gpu_top, "-J", "-o", "-"],
+            [intel_gpu_top, "-J"],
+        ]
+        errors = []
+
+        for cmd in attempts:
+            try:
+                proc = subprocess.run(
+                    cmd,
+                    timeout=2,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    encoding="utf-8",
+                    errors="ignore",
+                    check=False,
+                )
+            except Exception as exc:
+                errors.append(f"{' '.join(cmd[1:])}: {exc}")
+                continue
+
+            output = (proc.stdout or "").strip()
+            if not output:
+                err = (proc.stderr or "").strip()
+                errors.append(f"{' '.join(cmd[1:])}: {err or f'exit {proc.returncode}'}")
+                continue
+
+            lines = [line for line in output.splitlines() if line.strip().startswith("{")]
+            if not lines:
+                err = (proc.stderr or "").strip()
+                errors.append(f"{' '.join(cmd[1:])}: no JSON samples{f' ({err})' if err else ''}")
+                continue
+
+            try:
+                return json.loads(lines[-1])
+            except json.JSONDecodeError as exc:
+                errors.append(f"{' '.join(cmd[1:])}: invalid JSON ({exc})")
+
+        raise RuntimeError("; ".join(errors) if errors else "intel_gpu_top did not return JSON samples")
 
     def _find_intel_device(self):
         from_lspci = self._find_intel_device_from_lspci()
