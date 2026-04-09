@@ -5,7 +5,7 @@ import re
 import shutil
 import subprocess
 
-from schema import GPUSnapshot, MemoryInfo
+from schema import GPUSnapshot, MemoryInfo, ProcessInfo
 
 
 class IntelCollector:
@@ -65,8 +65,13 @@ class IntelCollector:
         try:
             data = self._read_intel_gpu_top_json(intel_gpu_top)
             busy_values = self._extract_busy_values(data)
+            snap.processes = self._extract_processes(data)
             snap.util_pct = max(busy_values) if busy_values else None
+            if snap.util_pct is None and snap.processes:
+                snap.util_pct = min(100.0, sum(p.gpu_pct or 0.0 for p in snap.processes))
             snap.sources["utilization"] = "intel_gpu_top"
+            if snap.processes:
+                snap.sources["processes"] = "intel_gpu_top"
             if snap.util_pct is None:
                 snap.gaps["utilization"] = "intel_gpu_top returned JSON, but no engine busy values were found."
         except Exception as exc:
@@ -93,7 +98,7 @@ class IntelCollector:
             try:
                 proc = subprocess.run(
                     cmd,
-                    timeout=2,
+                    timeout=5,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
                     text=True,
@@ -154,6 +159,50 @@ class IntelCollector:
         walk(payload)
         return [value for value in busy_values if 0 <= value <= 100]
 
+    def _extract_processes(self, payload):
+        collected = {}
+
+        def walk(node):
+            if isinstance(node, dict):
+                pid = self._extract_pid(node)
+                name = self._extract_process_name(node)
+                if pid is not None and name:
+                    gpu_pct = self._extract_node_busy(node)
+                    current = collected.setdefault(pid, {
+                        "pid": pid,
+                        "name": name,
+                        "gpu_pct": 0.0,
+                    })
+                    current["name"] = name
+                    if gpu_pct is not None:
+                        current["gpu_pct"] = max(current["gpu_pct"], gpu_pct)
+
+                for value in node.values():
+                    if isinstance(value, (dict, list)):
+                        walk(value)
+            elif isinstance(node, list):
+                for item in node:
+                    walk(item)
+
+        walk(payload)
+
+        processes = []
+        for info in collected.values():
+            gpu_pct = info["gpu_pct"]
+            if gpu_pct is None or gpu_pct <= 0:
+                continue
+            processes.append(ProcessInfo(
+                pid=info["pid"],
+                name=info["name"],
+                type="Compute",
+                gpu_pct=round(gpu_pct, 1),
+                gpu_pct_source="intel_gpu_top",
+                mem_mb=None,
+            ))
+
+        processes.sort(key=lambda proc: (proc.gpu_pct or 0), reverse=True)
+        return processes
+
     def _read_host_memory(self):
         meminfo_path = "/proc/meminfo"
         if not os.path.isfile(meminfo_path):
@@ -194,6 +243,47 @@ class IntelCollector:
             return None
         try:
             return float(match.group(1))
+        except ValueError:
+            return None
+
+    def _extract_pid(self, node):
+        for key in ("pid", "PID", "process id", "process-id", "client-id"):
+            if key in node:
+                return self._coerce_int(node.get(key))
+        return None
+
+    def _extract_process_name(self, node):
+        for key in ("name", "comm", "command", "process", "client"):
+            value = node.get(key)
+            if value is None:
+                continue
+            text = str(value).strip()
+            if text:
+                return text
+        return None
+
+    def _extract_node_busy(self, node):
+        values = self._extract_busy_values(node)
+        if values:
+            return max(values)
+        for key, value in node.items():
+            key_norm = str(key).strip().lower()
+            if "busy" in key_norm or "util" in key_norm:
+                pct = self._coerce_pct(value)
+                if pct is not None:
+                    return pct
+        return None
+
+    def _coerce_int(self, value):
+        if value is None:
+            return None
+        if isinstance(value, int):
+            return value
+        match = re.search(r"(\d+)", str(value))
+        if not match:
+            return None
+        try:
+            return int(match.group(1))
         except ValueError:
             return None
 
