@@ -101,12 +101,7 @@ class IntelCollector:
         return [snap]
 
     def _read_intel_gpu_top_json(self, intel_gpu_top):
-        attempts = [
-            [intel_gpu_top, "-J", "-s", "100", "-o", "-"],
-            [intel_gpu_top, "-J", "-s", "100"],
-            [intel_gpu_top, "-J", "-o", "-"],
-            [intel_gpu_top, "-J"],
-        ]
+        attempts = self._intel_gpu_top_attempts(intel_gpu_top, json_mode=True)
         errors = []
 
         for cmd in attempts:
@@ -252,10 +247,7 @@ class IntelCollector:
         return processes
 
     def _read_intel_gpu_top_text(self, intel_gpu_top):
-        attempts = [
-            [intel_gpu_top, "-s", "100", "-o", "-"],
-            [intel_gpu_top, "-s", "100"],
-        ]
+        attempts = self._intel_gpu_top_attempts(intel_gpu_top, json_mode=False)
         errors = []
 
         for cmd in attempts:
@@ -326,6 +318,27 @@ class IntelCollector:
 
         processes.sort(key=lambda proc: (proc.gpu_pct or 0), reverse=True)
         return processes
+
+    def _intel_gpu_top_attempts(self, intel_gpu_top, json_mode):
+        base_attempts = (
+            [
+                [intel_gpu_top, "-J", "-s", "100", "-o", "-"],
+                [intel_gpu_top, "-J", "-s", "100"],
+                [intel_gpu_top, "-J", "-o", "-"],
+                [intel_gpu_top, "-J"],
+            ]
+            if json_mode else
+            [
+                [intel_gpu_top, "-s", "100", "-o", "-"],
+                [intel_gpu_top, "-s", "100"],
+            ]
+        )
+
+        attempts = list(base_attempts)
+        sudo = shutil.which("sudo")
+        if sudo:
+            attempts.extend([["sudo", "-n", *cmd] for cmd in base_attempts])
+        return attempts
 
     def _read_host_memory(self):
         meminfo_path = "/proc/meminfo"
