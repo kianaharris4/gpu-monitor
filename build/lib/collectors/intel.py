@@ -77,6 +77,21 @@ class IntelCollector:
         except Exception as exc:
             snap.gaps["utilization"] = f"intel_gpu_top was detected but could not be read: {exc}"
 
+        if snap.util_pct is None and not snap.processes:
+            try:
+                text_metrics = self._read_intel_gpu_top_text(intel_gpu_top)
+                if text_metrics["util_pct"] is not None:
+                    snap.util_pct = text_metrics["util_pct"]
+                    snap.sources["utilization"] = "intel_gpu_top-text"
+                if text_metrics["processes"]:
+                    snap.processes = text_metrics["processes"]
+                    snap.sources["processes"] = "intel_gpu_top-text"
+                if snap.util_pct is None and not snap.processes:
+                    snap.gaps["utilization"] = "intel_gpu_top text output was readable, but no utilization values were recognized."
+            except Exception as exc:
+                if snap.util_pct is None:
+                    snap.gaps["utilization"] = f"intel_gpu_top text fallback failed: {exc}"
+
         if total_mb:
             snap.gaps["memory"] = "Memory reflects shared system RAM on Intel UMA, not dedicated per-GPU VRAM."
         else:
@@ -98,7 +113,7 @@ class IntelCollector:
             try:
                 proc = subprocess.run(
                     cmd,
-                    timeout=5,
+                    timeout=8,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
                     text=True,
@@ -119,13 +134,13 @@ class IntelCollector:
             try:
                 parsed = json.loads(output)
             except json.JSONDecodeError:
-                lines = [line for line in output.splitlines() if line.strip().startswith("{")]
-                if not lines:
+                objects = self._extract_json_objects(output)
+                if not objects:
                     err = (proc.stderr or "").strip()
                     errors.append(f"{' '.join(cmd[1:])}: no JSON samples{f' ({err})' if err else ''}")
                     continue
                 try:
-                    parsed = json.loads(lines[-1])
+                    parsed = json.loads(objects[-1])
                 except json.JSONDecodeError as exc:
                     errors.append(f"{' '.join(cmd[1:])}: invalid JSON ({exc})")
                     continue
@@ -137,6 +152,39 @@ class IntelCollector:
             errors.append(f"{' '.join(cmd[1:])}: JSON payload was not an object")
 
         raise RuntimeError("; ".join(errors) if errors else "intel_gpu_top did not return JSON samples")
+
+    def _extract_json_objects(self, text):
+        objects = []
+        depth = 0
+        start = None
+        in_string = False
+        escape = False
+
+        for idx, ch in enumerate(text):
+            if in_string:
+                if escape:
+                    escape = False
+                elif ch == "\\":
+                    escape = True
+                elif ch == '"':
+                    in_string = False
+                continue
+
+            if ch == '"':
+                in_string = True
+                continue
+            if ch == "{":
+                if depth == 0:
+                    start = idx
+                depth += 1
+            elif ch == "}":
+                if depth == 0:
+                    continue
+                depth -= 1
+                if depth == 0 and start is not None:
+                    objects.append(text[start:idx + 1])
+                    start = None
+        return objects
 
     def _extract_busy_values(self, payload):
         busy_values = []
@@ -197,6 +245,82 @@ class IntelCollector:
                 type="Compute",
                 gpu_pct=round(gpu_pct, 1),
                 gpu_pct_source="intel_gpu_top",
+                mem_mb=None,
+            ))
+
+        processes.sort(key=lambda proc: (proc.gpu_pct or 0), reverse=True)
+        return processes
+
+    def _read_intel_gpu_top_text(self, intel_gpu_top):
+        attempts = [
+            [intel_gpu_top, "-s", "100", "-o", "-"],
+            [intel_gpu_top, "-s", "100"],
+        ]
+        errors = []
+
+        for cmd in attempts:
+            try:
+                proc = subprocess.run(
+                    cmd,
+                    timeout=5,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    encoding="utf-8",
+                    errors="ignore",
+                    check=False,
+                )
+            except Exception as exc:
+                errors.append(f"{' '.join(cmd[1:])}: {exc}")
+                continue
+
+            output = ((proc.stdout or "") + "\n" + (proc.stderr or "")).strip()
+            if not output:
+                errors.append(f"{' '.join(cmd[1:])}: no output")
+                continue
+
+            util_pct = self._extract_text_util(output)
+            processes = self._extract_text_processes(output)
+            if util_pct is not None or processes:
+                return {"util_pct": util_pct, "processes": processes}
+            errors.append(f"{' '.join(cmd[1:])}: output did not match known intel_gpu_top text patterns")
+
+        raise RuntimeError("; ".join(errors) if errors else "intel_gpu_top text fallback did not produce output")
+
+    def _extract_text_util(self, text):
+        matches = []
+        for line in text.splitlines():
+            lower = line.lower()
+            if not any(token in lower for token in ("render", "video", "blitter", "compute", "copy", "3d")):
+                continue
+            for match in re.finditer(r"(\d+(?:\.\d+)?)\s*%", line):
+                try:
+                    matches.append(float(match.group(1)))
+                except ValueError:
+                    pass
+        return max(matches) if matches else None
+
+    def _extract_text_processes(self, text):
+        processes = []
+        seen = set()
+
+        for line in text.splitlines():
+            match = re.match(r"^\s*(\d+)\s+([A-Za-z0-9_.:/-][^%]{0,80}?)\s+((?:\d+(?:\.\d+)?\s*%[\s|]*)+)\s*$", line)
+            if not match:
+                continue
+            pid = self._coerce_int(match.group(1))
+            name = match.group(2).strip()
+            pct_values = [self._coerce_pct(value) for value in re.findall(r"\d+(?:\.\d+)?\s*%", match.group(3))]
+            pct_values = [value for value in pct_values if value is not None]
+            if pid is None or not name or not pct_values or pid in seen:
+                continue
+            seen.add(pid)
+            processes.append(ProcessInfo(
+                pid=pid,
+                name=name,
+                type="Compute",
+                gpu_pct=round(max(pct_values), 1),
+                gpu_pct_source="intel_gpu_top-text",
                 mem_mb=None,
             ))
 
