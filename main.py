@@ -15,6 +15,17 @@ app = FastAPI()
 collector = None
 
 
+def _is_normal_ws_disconnect(exc: Exception) -> bool:
+    msg = str(exc).lower()
+    return any(token in msg for token in [
+        "1001",
+        "going away",
+        "connection closed",
+        "websocket.close",
+        "disconnect message",
+    ])
+
+
 def _resolve_dashboard_ref():
     local_dashboard = Path(__file__).with_name("gpu_monitor_dashboard.html")
     if local_dashboard.is_file():
@@ -87,11 +98,12 @@ async def websocket_endpoint(ws: WebSocket):
         except WebSocketDisconnect:
             break
         except RuntimeError as e:
-            # Uvicorn/websockets can raise after the client navigates away.
-            if "disconnect message" in str(e).lower() or "after sending 'websocket.close'" in str(e).lower():
+            if _is_normal_ws_disconnect(e):
                 break
             raise
         except Exception as e:
+            if _is_normal_ws_disconnect(e):
+                break
             try:
                 await ws.send_json({"error": str(e), "gpus": []})
             except Exception:
