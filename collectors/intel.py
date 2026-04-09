@@ -106,16 +106,7 @@ class IntelCollector:
 
         for cmd in attempts:
             try:
-                proc = subprocess.run(
-                    cmd,
-                    timeout=8,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    text=True,
-                    encoding="utf-8",
-                    errors="ignore",
-                    check=False,
-                )
+                proc = self._run_streaming_command(cmd, timeout=8)
             except Exception as exc:
                 errors.append(f"{' '.join(cmd[1:])}: {exc}")
                 continue
@@ -252,16 +243,7 @@ class IntelCollector:
 
         for cmd in attempts:
             try:
-                proc = subprocess.run(
-                    cmd,
-                    timeout=5,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    text=True,
-                    encoding="utf-8",
-                    errors="ignore",
-                    check=False,
-                )
+                proc = self._run_streaming_command(cmd, timeout=5)
             except Exception as exc:
                 errors.append(f"{' '.join(cmd[1:])}: {exc}")
                 continue
@@ -339,6 +321,34 @@ class IntelCollector:
         if sudo:
             attempts.extend([["sudo", "-n", *cmd] for cmd in base_attempts])
         return attempts
+
+    def _run_streaming_command(self, cmd, timeout):
+        proc = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            encoding="utf-8",
+            errors="ignore",
+        )
+        try:
+            stdout, stderr = proc.communicate(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            proc.terminate()
+            try:
+                stdout, stderr = proc.communicate(timeout=1)
+            except subprocess.TimeoutExpired:
+                proc.kill()
+                stdout, stderr = proc.communicate()
+
+        class Result:
+            pass
+
+        result = Result()
+        result.stdout = stdout or ""
+        result.stderr = stderr or ""
+        result.returncode = proc.returncode
+        return result
 
     def _read_host_memory(self):
         meminfo_path = "/proc/meminfo"
