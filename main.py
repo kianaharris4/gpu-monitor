@@ -5,7 +5,7 @@ from pathlib import Path
 from importlib.metadata import version, PackageNotFoundError
 
 import uvicorn
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, JSONResponse
 
 from collectors.factory import get_collector
@@ -84,8 +84,18 @@ async def websocket_endpoint(ws: WebSocket):
             if not isinstance(snapshots, list):
                 snapshots = [snapshots]
             await ws.send_json({"gpus": [s.to_dict() for s in snapshots]})
+        except WebSocketDisconnect:
+            break
+        except RuntimeError as e:
+            # Uvicorn/websockets can raise after the client navigates away.
+            if "disconnect message" in str(e).lower() or "after sending 'websocket.close'" in str(e).lower():
+                break
+            raise
         except Exception as e:
-            await ws.send_json({"error": str(e), "gpus": []})
+            try:
+                await ws.send_json({"error": str(e), "gpus": []})
+            except Exception:
+                break
         await asyncio.sleep(1)
 
 
