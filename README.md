@@ -13,6 +13,8 @@ It is designed to run locally, then expose a browser dashboard over HTTP so you 
 
 Metric coverage varies by platform and driver. When a vendor API does not expose a field, the dashboard shows that gap instead of crashing.
 
+For the backend design and why each telemetry command is used, see [BACKEND_TELEMETRY_CONCEPTS.md](BACKEND_TELEMETRY_CONCEPTS.md).
+
 ## Quick start
 
 ### 1. Clone the repo
