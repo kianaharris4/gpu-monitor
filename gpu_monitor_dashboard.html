@@ -111,7 +111,7 @@ body{font-family:'Segoe UI',SegoeUI,system-ui,-apple-system,sans-serif;backgroun
 .overview-process-panel{min-height:488px}
 .overview-process-panel .azure-panel-b{display:flex;flex-direction:column;min-height:460px}
 .overview-process-table-wrap{flex:1}
-.usage-canvas.compact{height:180px}
+.usage-canvas.compact{height:244px}
 .memory-donut-wrap{display:flex;flex-direction:column;gap:12px}
 .memory-donut-canvas{height:210px}
 .memory-donut-legend{display:flex;gap:16px;flex-wrap:wrap}
@@ -204,17 +204,23 @@ select{font-size:12px;padding:5px 28px 5px 10px;border-radius:16px;border:1px so
 .prop-k{color:var(--text2)}
 .prop-sep{color:var(--text3)}
 .prop-v{font-weight:500}
+.telemetry-banner{display:none;align-items:flex-start;gap:8px;margin:0 0 18px;padding:9px 12px;background:#f3f8ff;border-left:3px solid var(--azure);font-size:12px;color:var(--text2)}
+.telemetry-banner.visible{display:flex}
+.telemetry-banner-icon{width:16px;height:16px;border:1px solid var(--azure);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:var(--azure);font-size:11px;font-weight:600;flex-shrink:0;margin-top:1px}
+.telemetry-banner-title{font-weight:600;color:var(--text);margin-bottom:2px}
+.telemetry-banner ul{margin:4px 0 0 16px;padding:0}
+.telemetry-banner li{margin:2px 0}
 .ok-dot{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#7fba00;color:#fff;font-size:11px;font-weight:700;margin-right:6px}
 .azure-panel{background:transparent;border:none;border-radius:0;box-shadow:none}
-.azure-panel-h{padding:0 0 10px;border-bottom:1px solid var(--line2);font-size:12px;font-weight:600;color:var(--text);margin-bottom:10px}
+.azure-panel-h{padding:0 0 4px;border-bottom:none;font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px}
 .azure-panel-b{padding:0}
 .usage-wrap{display:flex;flex-direction:column;gap:10px}
 .usage-canvas{height:244px}
 .usage-legend{display:flex;gap:24px;flex-wrap:wrap;padding-top:0}
 .usage-legend-item{display:flex;align-items:flex-start;gap:7px}
-.usage-legend-swatch{width:4px;height:34px;border-radius:2px}
-.usage-legend-label{font-size:11px;color:var(--text2)}
-.usage-legend-value{font-size:12px;font-weight:600;margin-top:2px}
+.usage-legend-swatch{width:4px;height:55px;border-radius:0}
+.usage-legend-label{font-size:11px;color:var(--text);font-weight:600}
+.usage-legend-value{font-size:28px;font-weight:400;line-height:1.1;margin-top:6px;color:var(--text)}
 .azure-proc-table{width:100%;border-collapse:collapse;font-size:12px}
 .azure-proc-table th,.azure-proc-table td{padding:5px 10px;border-bottom:1px solid var(--line2);text-align:left;vertical-align:middle}
 .azure-proc-table th{font-size:11px;color:var(--text);font-weight:600}
@@ -275,8 +281,8 @@ canvas{image-rendering:auto}
     </div>
     <div class="portal-user">
       <div class="portal-user-copy">
-        <strong>Kiana Barilar</strong>
-        <span>CONTOSO</span>
+        <strong>Azure User</strong>
+        <span>LOCAL</span>
       </div>
       <div class="portal-user-avatar" aria-hidden="true"></div>
     </div>
@@ -296,7 +302,7 @@ canvas{image-rendering:auto}
     <div>
       <div class="portal-resource-head">
         <span class="portal-resource-icon">&#128451;</span>
-        <div class="portal-resource-title"><span id="hdr-title">robot-3V6KB03</span> <span class="portal-resource-kind">| GPU</span></div>
+        <div class="portal-resource-title"><span id="hdr-title">GPU-HOST</span> <span class="portal-resource-kind">| GPU</span></div>
       </div>
       <div class="portal-resource-subtitle" id="hdr-sub">Provisioned Machine - Azure Arc</div>
     </div>
@@ -312,7 +318,7 @@ canvas{image-rendering:auto}
 </div>
 <aside class="portal-sidebar">
   <div class="sidebar-resource">
-    <div class="sidebar-resource-name" id="hdr-resource-name">robot-3V6KB03 | GPU</div>
+    <div class="sidebar-resource-name" id="hdr-resource-name">GPU-HOST | GPU</div>
     <div class="sidebar-resource-sub">Provisioned Machine - Azure Arc</div>
   </div>
   <div class="sidebar-search">
@@ -404,6 +410,13 @@ canvas{image-rendering:auto}
           <div class="prop-col" id="ov-key-left"></div>
           <div class="prop-col" id="ov-key-right"></div>
         </div>
+      </div>
+    </div>
+    <div id="telemetry-banner" class="telemetry-banner" role="status" aria-live="polite">
+      <span class="telemetry-banner-icon">i</span>
+      <div>
+        <div class="telemetry-banner-title">Telemetry source needs attention</div>
+        <div id="telemetry-banner-body"></div>
       </div>
     </div>
   </div>
@@ -714,7 +727,7 @@ const PROC_COLORS = ['#0078D4','#50E6FF','#107C10','#8764B8','#FF8C00','#E3008C'
 const MAXHIST = 300;
 const RESOURCE_NAME = (location.hostname && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1')
   ? location.hostname.toUpperCase()
-  : 'robot-3V6KB03';
+  : 'GPU-HOST';
 
 // ─── State ────────────────────────────────────────────────────────────────────
 let OV_WIN = 60, PROC_WIN = 60, MEM_WIN = 60;
@@ -1010,6 +1023,49 @@ function setOvWin(v){
   updateOverviewTrendCharts();
 } window.setOvWin=setOvWin;
 
+function azureLineOptions(maxValue, tickSuffix='') {
+  return {
+    responsive:true,
+    maintainAspectRatio:false,
+    animation:false,
+    layout:{padding:{top:2,right:0,bottom:0,left:0}},
+    plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false}},
+    interaction:{mode:'index',intersect:false},
+    elements:{line:{borderJoinStyle:'miter',borderCapStyle:'butt'},point:{radius:0,hoverRadius:0}},
+    scales:{
+      x:{
+        ticks:{
+          font:{size:11,family:'Segoe UI'},
+          color:'#605e5c',
+          maxTicksLimit:3,
+          padding:6,
+          callback:(value,index,ticks)=>{
+            if(index===0) return '0:00';
+            if(index===ticks.length-1) return '12:00';
+            if(index===Math.floor((ticks.length-1)/2)) return '6:00';
+            return '';
+          }
+        },
+        border:{display:true,color:'#d2d0ce'},
+        grid:{display:false}
+      },
+      y:{
+        min:0,
+        max:maxValue,
+        ticks:{
+          stepSize:maxValue === 100 ? 20 : undefined,
+          font:{size:11,family:'Segoe UI'},
+          color:'#605e5c',
+          padding:4,
+          callback:value => tickSuffix && Number(value) === maxValue ? `${value}${tickSuffix}` : value
+        },
+        border:{display:false},
+        grid:{color:'#d2d0ce',lineWidth:1,drawTicks:false}
+      }
+    }
+  };
+}
+
 function buildOverviewUsageChart() {
   const ctx = document.getElementById('ov-usage-chart');
   if(!ctx) return;
@@ -1020,18 +1076,10 @@ function buildOverviewUsageChart() {
     data:{
       labels:Array.from({length:points},()=> ''),
       datasets:[
-        {label:'GPU utilization',data:[],borderColor:'#0078D4',backgroundColor:'rgba(0,120,212,.08)',borderWidth:2,pointRadius:0,tension:.25,fill:false}
+        {label:'GPU utilization',data:[],borderColor:'#0078D4',backgroundColor:'transparent',borderWidth:2,pointRadius:0,tension:0,fill:false}
       ]
     },
-    options:{
-      responsive:true,maintainAspectRatio:false,animation:false,
-      plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false}},
-      interaction:{mode:'index',intersect:false},
-      scales:{
-        x:{ticks:{font:{size:10},maxTicksLimit:3,color:'rgba(96,94,92,.75)'},grid:{display:false}},
-        y:{min:0,max:100,ticks:{font:{size:10},maxTicksLimit:5,color:'rgba(96,94,92,.75)'},grid:{color:'rgba(225,223,221,.9)'}}
-      }
-    }
+    options: azureLineOptions(100, '%')
   });
 }
 
@@ -1082,16 +1130,8 @@ function buildOverviewTrendChart(canvasId, color, maxValue) {
   if(!canvas) return null;
   return new Chart(canvas.getContext('2d'), {
     type:'line',
-    data:{labels:Array.from({length:windowPoints(OV_WIN)},()=> ''),datasets:[{data:[],borderColor:color,backgroundColor:color+'18',borderWidth:2,pointRadius:0,tension:.25,fill:false}]},
-    options:{
-      responsive:true,maintainAspectRatio:false,animation:false,
-      plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false}},
-      interaction:{mode:'index',intersect:false},
-      scales:{
-        x:{ticks:{font:{size:10},maxTicksLimit:3,color:'rgba(96,94,92,.75)'},grid:{display:false}},
-        y:{min:0,max:maxValue,ticks:{font:{size:10},maxTicksLimit:5,color:'rgba(96,94,92,.75)'},grid:{color:'rgba(225,223,221,.9)'}}
-      }
-    }
+    data:{labels:Array.from({length:windowPoints(OV_WIN)},()=> ''),datasets:[{data:[],borderColor:color,backgroundColor:'transparent',borderWidth:2,pointRadius:0,tension:0,fill:false}]},
+    options: azureLineOptions(maxValue)
   });
 }
 
@@ -1128,6 +1168,27 @@ function updateOverviewTrendCharts() {
 
 function propRowsHtml(rows) {
   return rows.map(([k,v])=>`<div class="prop-row"><div class="prop-k">${k}</div><div class="prop-sep">:</div><div class="prop-v">${v}</div></div>`).join('');
+}
+
+function updateTelemetryBanner(s) {
+  const banner = document.getElementById('telemetry-banner');
+  const body = document.getElementById('telemetry-banner-body');
+  if(!banner || !body) return;
+
+  const gaps = s.gaps || {};
+  const relevant = ['collector','utilization','memory','power','temperature','processes']
+    .map(key => gaps[key])
+    .filter(Boolean);
+
+  if(!relevant.length) {
+    banner.classList.remove('visible');
+    body.innerHTML = '';
+    return;
+  }
+
+  const unique = [...new Set(relevant)].slice(0, 4);
+  body.innerHTML = `<ul>${unique.map(item=>`<li>${item}</li>`).join('')}</ul>`;
+  banner.classList.add('visible');
 }
 
 function sparklineSvg(values, color) {
@@ -1499,6 +1560,7 @@ function updateDeviceTab(s) {
 
   setText('ov-key-left', propRowsHtml(left));
   setText('ov-key-right', propRowsHtml(right));
+  updateTelemetryBanner(s);
 
   const hwHtml = hw.map(([k,v])=>`<tr><td>${k}</td><td>${v}</td></tr>`).join('');
   const memHtml = memRows.map(([k,v])=>`<tr><td>${k}</td><td>${v}</td></tr>`).join('');

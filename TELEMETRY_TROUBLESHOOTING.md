@@ -1,0 +1,52 @@
+# Telemetry Troubleshooting
+
+This dashboard displays telemetry warnings from each collector in the banner under **Key properties**. The table below maps those messages to likely root causes and suggested fixes.
+
+| Dashboard message | Likely root cause | Potential solutions |
+| --- | --- | --- |
+| `NVIDIA GPU detected, but nvidia-smi is not available. Install the NVIDIA driver utilities or verify the NVIDIA driver is loaded.` | A discrete NVIDIA GPU was detected, but the NVIDIA driver utilities are missing or `nvidia-smi` is not on `PATH`. | Install the NVIDIA driver package for the OS. Verify `nvidia-smi` runs from the same shell/user that starts the dashboard. Restart the dashboard after installing drivers. |
+| `nvidia-smi failed while collecting telemetry: <error>` | `nvidia-smi` exists, but failed during collection because the driver is unloaded, incompatible, unavailable in the container/session, or returned an unexpected result. | Run `nvidia-smi` manually and fix the reported driver/runtime error. If running in a container, expose the NVIDIA runtime/devices. Confirm the dashboard process has the same environment as the working shell. |
+| `GPU utilization requires a working nvidia-smi command.` | NVIDIA utilization depends on `nvidia-smi`, and the command failed or was unavailable. | Fix `nvidia-smi` first. Confirm `nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits` returns a value. |
+| `GPU memory requires a working nvidia-smi command.` | NVIDIA memory metrics depend on `nvidia-smi`, and the command failed or was unavailable. | Fix `nvidia-smi` first. Confirm `nvidia-smi --query-gpu=memory.used,memory.total --format=csv,noheader,nounits` returns values. |
+| `NVIDIA Jetson platform detected, but tegrastats is not available. Install or enable NVIDIA Jetson telemetry tools so GPU utilization and unified memory can be collected.` | The host looks like a Jetson, but `tegrastats` is missing or unavailable. | Install/repair NVIDIA Jetson tooling from JetPack/L4T. Verify `which tegrastats` and `tegrastats --interval 100 --count 1` work for the dashboard user. |
+| `tegrastats failed while collecting telemetry: <error>` | `tegrastats` exists, but failed while collecting a sample. | Run `tegrastats --interval 100 --count 1` manually and resolve the reported error. Check permissions and whether the Jetson telemetry services/tools are correctly installed. |
+| `GPU utilization requires tegrastats on NVIDIA Jetson.` | Jetson GPU utilization is sourced from `tegrastats`, but it failed or is missing. | Restore `tegrastats` functionality. Confirm the output includes `GR3D_FREQ`. |
+| `Unified memory telemetry requires tegrastats on NVIDIA Jetson.` | Jetson unified memory values are sourced from `tegrastats`, but it failed or is missing. | Restore `tegrastats` functionality. Confirm the output includes `RAM used/total` values. |
+| `Install intel-gpu-tools to enable live Intel GPU utilization on Linux.` | `intel_gpu_top` is not installed or not on `PATH`. | Install `intel-gpu-tools`. Verify `which intel_gpu_top` and run `intel_gpu_top -J -s 100 -o -`. Restart the dashboard. |
+| `intel_gpu_top was detected but could not be read: <error>` | `intel_gpu_top` exists but failed, often because GPU performance counters require permissions, capabilities, or kernel settings. | Run `intel_gpu_top -J -s 100 -o -` manually. If it only works with `sudo`, add the user to `render`/`video`, set appropriate capabilities such as `cap_perfmon`, and check `kernel.perf_event_paranoid`. |
+| `intel_gpu_top returned JSON, but no engine busy values were found.` | `intel_gpu_top` produced JSON, but the dashboard did not recognize any utilization fields in that schema. | Capture a short sample from `intel_gpu_top -J -s 100 -o -` and update the parser for that schema. Confirm the output contains engine busy percentages. |
+| `intel_gpu_top text output was readable, but no utilization values were recognized.` | JSON parsing failed and the text fallback ran, but the text format did not match known Intel output patterns. | Capture a short sample from `intel_gpu_top -s 100 -o -` and update the parser. Confirm the output includes engine or process percentage columns. |
+| `intel_gpu_top text fallback failed: <error>` | The fallback non-JSON `intel_gpu_top` command failed or could not be parsed. | Run `intel_gpu_top -s 100 -o -` manually. Resolve permissions/runtime errors or provide a sample output for parser support. |
+| `Fell back to a generic Intel GPU name because lspci/sysfs metadata was unavailable.` | The Intel collector could use telemetry tooling, but could not identify the device from `lspci` or `/sys/class/drm`. | Install `pciutils` for `lspci`, verify `/sys/class/drm` is mounted and readable, and check that the Intel GPU appears under `/sys/class/drm/card*/device/vendor`. |
+| `Intel Linux shared memory telemetry could not be derived from /proc/meminfo.` | The Intel collector could not read `/proc/meminfo`, so shared UMA memory could not be estimated. | Verify `/proc/meminfo` exists and is readable by the dashboard process. This is unusual outside restricted containers. |
+| `Memory reflects shared system RAM on Intel UMA, not dedicated per-GPU VRAM.` | Informational message for Intel integrated GPUs. UMA memory is shared system RAM, not dedicated VRAM. | No action required. Interpret memory values as shared host memory estimates rather than discrete GPU VRAM. |
+| `Intel Linux power telemetry is not wired up yet.` | The Linux Intel collector does not currently collect power draw. | No immediate fix in configuration. Add a backend source such as hwmon/RAPL if reliable power data is required. |
+| `Intel Linux temperature telemetry is not wired up yet.` | The Linux Intel collector does not currently collect temperature. | No immediate fix in configuration. Add a backend source such as hwmon/thermal zones if reliable temperature data is required. |
+| `No supported GPU telemetry source was detected. Supported sources include nvidia-smi, tegrastats, rocm-smi, intel_gpu_top, Windows GPU performance counters, or visible GPU metadata in lspci/sysfs.` | No collector could detect a supported telemetry source or visible GPU metadata. | Install the relevant vendor tool, verify the GPU is visible to the OS, and confirm the dashboard user can run the telemetry command. |
+| `Per-process Windows GPU attribution is not wired up yet.` | Windows collection found adapter-level data, but per-process attribution is not implemented. | No configuration fix. Implement Windows per-process attribution if this view is required. |
+| `nvidia-smi is unavailable, so live NVIDIA metrics are missing.` | Windows collector saw an NVIDIA adapter, but `nvidia-smi` was not available for NVIDIA-specific live metrics. | Install NVIDIA driver utilities and confirm `nvidia-smi` works from the dashboard environment. |
+| `No active GPU engine counter matched this NVIDIA adapter.` | Windows performance counters did not map active engine counters to the NVIDIA adapter. | Verify GPU activity is present. Restart the dashboard. If NVIDIA is available, rely on `nvidia-smi` fallback for aggregate utilization. |
+| `No Windows GPU engine counter matched this NVIDIA adapter; falling back to nvidia-smi utilization.` | Windows performance counters could not be matched, but `nvidia-smi` can still provide aggregate utilization. | Usually no action required if aggregate utilization is acceptable. Investigate Windows GPU counter/LUID mapping only if per-engine accuracy is required. |
+| `Windows performance counters do not expose Intel package temperature here.` | Windows Intel collector cannot read temperature from the current performance-counter path. | No configuration fix in the current collector. Add a supported Windows temperature source if needed. |
+| `Windows performance counters do not expose Intel GPU power draw here.` | Windows Intel collector cannot read power from the current performance-counter path. | No configuration fix in the current collector. Add a supported Windows power source if needed. |
+| `No active GPU engine counter matched this adapter.` | Windows performance counters were available, but no active engine counter matched the selected adapter. | Confirm GPU activity, update GPU drivers, and restart the dashboard. If the adapter is idle, the chart may remain at zero or unavailable. |
+
+## Quick Validation Commands
+
+Run these as the same user that starts the dashboard.
+
+| Platform | Command |
+| --- | --- |
+| NVIDIA discrete GPU | `nvidia-smi` |
+| NVIDIA query path | `nvidia-smi --query-gpu=index,name,utilization.gpu,memory.used,memory.total --format=csv,noheader,nounits` |
+| NVIDIA Jetson | `tegrastats --interval 100 --count 1` |
+| Intel Linux JSON | `intel_gpu_top -J -s 100 -o -` |
+| Intel Linux text fallback | `intel_gpu_top -s 100 -o -` |
+| Intel Linux device metadata | `lspci` and `ls /sys/class/drm` |
+| AMD ROCm | `rocm-smi --json` |
+
+## Notes
+
+- The dashboard intentionally keeps rendering a placeholder GPU snapshot when telemetry is unavailable. This allows the UI to explain what is missing instead of failing with an empty page.
+- Some collectors can populate key properties and memory while utilization remains unavailable. This usually means device metadata is readable, but the live telemetry tool is missing, inaccessible, or returning an unsupported format.
+- Intel integrated GPU memory is shared UMA memory, so it should not be interpreted as dedicated VRAM.

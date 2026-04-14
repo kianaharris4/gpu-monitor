@@ -1,0 +1,33 @@
+# Python bytecode/cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Build/package artifacts
+build/
+dist/
+*.egg-info/
+
+# Local runtime/cache output
+.tmp/
+*.log
+
+# Local machine diagnostics
+dxdiag.txt
+collectors/dxdiag.txt
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Test/coverage artifacts
+.pytest_cache/
+.coverage
+htmlcov/

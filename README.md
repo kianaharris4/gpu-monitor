@@ -172,7 +172,7 @@ If you want anyone to be able to install it without downloading the repository, 
 
 ## GitHub Actions release flow
 
-This repo now includes a GitHub Actions workflow at [.github/workflows/package.yml](/c:/Users/kianaharris/OneDrive%20-%20Microsoft/Desktop/gpu_monitor/.github/workflows/package.yml).
+This repo now includes a GitHub Actions workflow at [.github/workflows/package.yml](.github/workflows/package.yml).
 
 It does two things:
 
@@ -190,6 +190,8 @@ After that, users can download the wheel from the GitHub Release page and instal
 
 ## Known limitations
 
-- Linux Intel support currently has better utilization coverage than memory coverage
+- Linux Intel memory is reported as shared system RAM/UMA usage when dedicated VRAM is not exposed
 - Jetson support depends on the exact `tegrastats` output format on the target device
 - Per-process GPU attribution is not available on every vendor or OS path
+
+For platform-specific telemetry errors and suggested fixes, see [TELEMETRY_TROUBLESHOOTING.md](TELEMETRY_TROUBLESHOOTING.md).

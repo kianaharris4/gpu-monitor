@@ -48,6 +48,21 @@ class NvidiaCollector:
                 snapshots.append(snap)
 
         except Exception as e:
-            return [{"error": str(e)}]
+            snap = GPUSnapshot(
+                device_name="NVIDIA telemetry unavailable",
+                vendor="nvidia",
+                compute_api="NVIDIA",
+                memory=MemoryInfo(mem_model="dedicated", total_mb=0.0, used_mb=0.0),
+            )
+            snap.caps.update({
+                "utilization": False,
+                "memory": False,
+                "power": False,
+                "temperature": False,
+            })
+            snap.gaps["collector"] = f"nvidia-smi failed while collecting telemetry: {e}"
+            snap.gaps["utilization"] = "GPU utilization requires a working nvidia-smi command."
+            snap.gaps["memory"] = "GPU memory requires a working nvidia-smi command."
+            return [snap]
 
         return snapshots

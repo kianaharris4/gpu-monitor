@@ -11,11 +11,12 @@ class JetsonCollector:
             return False
 
     def collect(self):
-        snap = GPUSnapshot()
+        snap = GPUSnapshot(device_name="NVIDIA Jetson", vendor="nvidia", compute_api="Jetson")
         try:
             out = subprocess.check_output(
                 ["tegrastats","--interval","100","--count","1"]
             ).decode()
+            snap.sources["telemetry"] = "tegrastats"
 
             ram = re.search(r"RAM (\d+)/(\d+)MB", out)
             if ram:
@@ -32,6 +33,8 @@ class JetsonCollector:
                 snap.clock_mhz = float(gpu.group(2))
 
         except Exception as e:
-            print(e)
+            snap.gaps["collector"] = f"tegrastats failed while collecting telemetry: {e}"
+            snap.gaps["utilization"] = "GPU utilization requires tegrastats on NVIDIA Jetson."
+            snap.gaps["memory"] = "Unified memory telemetry requires tegrastats on NVIDIA Jetson."
 
         return [snap]
