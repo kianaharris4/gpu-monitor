@@ -105,20 +105,27 @@ body{font-family:'Segoe UI',SegoeUI,system-ui,-apple-system,sans-serif;backgroun
 .portal-inline-search{width:124px;height:26px;border:1px solid #8a8886;background:#fff;padding:0 10px;font:inherit;color:var(--text)}
 .portal-refresh{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--text2)}
 .portal-refresh-icon{font-size:16px;color:var(--azure)}
-.overview-metrics-layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:26px;align-items:start}
-.overview-left-stack{display:flex;flex-direction:column;gap:18px}
-.overview-chart-panel{width:260px}
+.overview-metrics-layout{display:grid;grid-template-columns:292px minmax(0,1fr);gap:30px;align-items:start}
+.overview-left-stack{display:flex;flex-direction:column;gap:24px;width:292px}
+.overview-chart-panel{width:292px}
 .overview-process-panel{min-height:488px}
 .overview-process-panel .azure-panel-b{display:flex;flex-direction:column;min-height:460px}
 .overview-process-table-wrap{flex:1}
 .usage-canvas.compact{height:244px}
-.memory-donut-wrap{display:flex;flex-direction:column;gap:12px}
-.memory-donut-canvas{height:210px}
-.memory-donut-legend{display:flex;gap:16px;flex-wrap:wrap}
-.memory-donut-item{display:flex;align-items:flex-start;gap:6px}
-.memory-donut-swatch{width:3px;height:22px;border-radius:2px}
-.memory-donut-label{font-size:9px;color:var(--text2);text-transform:uppercase}
-.memory-donut-value{font-size:11px;font-weight:600;margin-top:1px}
+.live-metric-row{display:grid;grid-template-columns:repeat(2, minmax(260px, 1fr));gap:18px;max-width:720px}
+.live-metric-card{background:#fff;border:1px solid var(--line);border-radius:3px;box-shadow:0 1px 3px rgba(0,0,0,.12);padding:18px 22px 16px;min-height:118px}
+.live-metric-label{font-size:14px;font-weight:600;color:var(--text);margin-bottom:14px}
+.live-metric-value{font-size:28px;font-weight:400;line-height:1;color:var(--text);margin-bottom:12px}
+.live-metric-meta{font-size:12px;color:var(--text2);margin-bottom:4px}
+.live-metric-sub{font-size:12px;color:var(--text3)}
+.live-metric-note{grid-column:1 / -1;font-size:12px;color:var(--text3);margin-top:-6px}
+.memory-donut-wrap{display:flex;flex-direction:column;gap:18px}
+.memory-donut-canvas{height:292px}
+.memory-donut-legend{display:flex;gap:28px;flex-wrap:nowrap;padding-left:10px}
+.memory-donut-item{display:flex;align-items:flex-start;gap:7px;min-width:96px}
+.memory-donut-swatch{width:4px;height:55px;border-radius:0}
+.memory-donut-label{font-size:11px;color:var(--text);font-weight:600;line-height:1.1}
+.memory-donut-value{font-size:28px;font-weight:400;line-height:1.1;margin-top:6px;color:var(--text)}
 .card{background:var(--page);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow)}
 .metric{background:var(--page);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;min-height:92px;box-shadow:var(--shadow)}
 .ml{font-size:12px;color:var(--text2);margin-bottom:8px;font-weight:600}
@@ -214,9 +221,9 @@ select{font-size:12px;padding:5px 28px 5px 10px;border-radius:16px;border:1px so
 .azure-panel{background:transparent;border:none;border-radius:0;box-shadow:none}
 .azure-panel-h{padding:0 0 4px;border-bottom:none;font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px}
 .azure-panel-b{padding:0}
-.usage-wrap{display:flex;flex-direction:column;gap:10px}
+.usage-wrap{display:flex;flex-direction:column;gap:12px}
 .usage-canvas{height:244px}
-.usage-legend{display:flex;gap:24px;flex-wrap:wrap;padding-top:0}
+.usage-legend{display:flex;gap:24px;flex-wrap:wrap;padding-top:2px;padding-left:10px}
 .usage-legend-item{display:flex;align-items:flex-start;gap:7px}
 .usage-legend-swatch{width:4px;height:55px;border-radius:0}
 .usage-legend-label{font-size:11px;color:var(--text);font-weight:600}
@@ -415,7 +422,7 @@ canvas{image-rendering:auto}
     <div id="telemetry-banner" class="telemetry-banner" role="status" aria-live="polite">
       <span class="telemetry-banner-icon">i</span>
       <div>
-        <div class="telemetry-banner-title">Telemetry source needs attention</div>
+        <div class="telemetry-banner-title">Telemetry availability details</div>
         <div id="telemetry-banner-body"></div>
       </div>
     </div>
@@ -516,53 +523,20 @@ canvas{image-rendering:auto}
       </div>
     </div>
 
-    <div class="azure-half-row portal-section" style="grid-template-columns:260px 260px;gap:26px">
-      <div class="azure-panel overview-chart-panel">
-        <div class="azure-panel-h">Temperature</div>
-        <div class="azure-panel-b">
-          <div class="usage-wrap">
-            <div class="usage-canvas compact"><canvas id="ov-temp-chart"></canvas></div>
-            <div class="usage-legend">
-              <div class="usage-legend-item">
-                <span class="usage-legend-swatch" style="background:#EF9F27"></span>
-                <div>
-                  <div class="usage-legend-label">Temperature</div>
-                  <div class="usage-legend-value" id="ov-temp-current">--</div>
-                </div>
-              </div>
-              <div class="usage-legend-item">
-                <div>
-                  <div class="usage-legend-label">Trend</div>
-                  <div class="usage-legend-value" id="ov-temp-meta">Thermal trend over the selected time window</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+    <div class="live-metric-row portal-section">
+      <div class="live-metric-card">
+        <div class="live-metric-label">Temperature</div>
+        <div class="live-metric-value" id="ov-temp-current">--</div>
+        <div class="live-metric-meta" id="ov-temp-meta">Last sample: --</div>
+        <div class="live-metric-sub" id="ov-temp-context">Limit: --</div>
       </div>
-      <div class="azure-panel overview-chart-panel">
-        <div class="azure-panel-h">Power draw</div>
-        <div class="azure-panel-b">
-          <div class="usage-wrap">
-            <div class="usage-canvas compact"><canvas id="ov-power-chart"></canvas></div>
-            <div class="usage-legend">
-              <div class="usage-legend-item">
-                <span class="usage-legend-swatch" style="background:#D85A30"></span>
-                <div>
-                  <div class="usage-legend-label">Power draw</div>
-                  <div class="usage-legend-value" id="ov-power-current">--</div>
-                </div>
-              </div>
-              <div class="usage-legend-item">
-                <div>
-                  <div class="usage-legend-label">Trend</div>
-                  <div class="usage-legend-value" id="ov-power-meta">Board power trend over the selected time window</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div class="live-metric-card">
+        <div class="live-metric-label">Power draw</div>
+        <div class="live-metric-value" id="ov-power-current">--</div>
+        <div class="live-metric-meta" id="ov-power-meta">Last sample: --</div>
+        <div class="live-metric-sub" id="ov-power-context">Limit: --</div>
       </div>
+      <div class="live-metric-note">Temperature and power draw show the latest sample. The time filter changes historical charts such as GPU usage.</div>
     </div>
 
   <div style="display:none">
@@ -939,8 +913,6 @@ const OV_TRACKS = [
 const ovCharts = {};
 let ovUsageChart = null;
 let ovMemoryDonut = null;
-let ovTempChart = null;
-let ovPowerChart = null;
 let lastHoverPct = null;
 
 const crosshairPlugin = {
@@ -1020,7 +992,6 @@ function setOvWin(v){
   const legacyPicker = document.getElementById('ov-win-legacy');
   if (legacyPicker) legacyPicker.value = String(OV_WIN);
   updateOverviewUsageChart();
-  updateOverviewTrendCharts();
 } window.setOvWin=setOvWin;
 
 function azureLineOptions(maxValue, tickSuffix='') {
@@ -1100,7 +1071,7 @@ function buildOverviewMemoryDonut() {
     },
     options:{
       responsive:true,maintainAspectRatio:false,animation:false,
-      cutout:'60%',
+      cutout:'54%',
       plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.label}: ${Math.round(c.raw||0)}%`}}}
     },
     plugins:[{
@@ -1114,30 +1085,15 @@ function buildOverviewMemoryDonut() {
         ctx.save();
         ctx.textAlign='center';
         ctx.fillStyle='#323130';
-        ctx.font='400 18px Segoe UI';
+        ctx.font='400 28px Segoe UI';
         ctx.fillText(`${used}%`, x, y + 4);
         ctx.fillStyle='#8a8886';
         ctx.font='12px Segoe UI';
-        ctx.fillText('Used', x, y + 22);
+        ctx.fillText('Used', x, y + 28);
         ctx.restore();
       }
     }]
   });
-}
-
-function buildOverviewTrendChart(canvasId, color, maxValue) {
-  const canvas = document.getElementById(canvasId);
-  if(!canvas) return null;
-  return new Chart(canvas.getContext('2d'), {
-    type:'line',
-    data:{labels:Array.from({length:windowPoints(OV_WIN)},()=> ''),datasets:[{data:[],borderColor:color,backgroundColor:'transparent',borderWidth:2,pointRadius:0,tension:0,fill:false}]},
-    options: azureLineOptions(maxValue)
-  });
-}
-
-function buildOverviewTrendCharts() {
-  if(!ovTempChart) ovTempChart = buildOverviewTrendChart('ov-temp-chart', '#EF9F27', 100);
-  if(!ovPowerChart) ovPowerChart = buildOverviewTrendChart('ov-power-chart', '#D85A30', 400);
 }
 
 function updateOverviewUsageChart() {
@@ -1149,21 +1105,9 @@ function updateOverviewUsageChart() {
   ovUsageChart.update('none');
 }
 
-function updateOverviewTrendCharts() {
-  buildOverviewTrendCharts();
-  const points = windowPoints(OV_WIN);
-  if(ovTempChart){
-    ovTempChart.data.labels = Array.from({length:points},(_,i)=> i===0?'':i===points-1?'now':'');
-    ovTempChart.data.datasets[0].data = hist.temp.slice(-points);
-    ovTempChart.options.scales.y.max = Math.max(90, (lastSnap?.temp_max_c || 0), ...hist.temp.slice(-points).filter(v=>v!=null).map(v=>Math.ceil(v / 5) * 5));
-    ovTempChart.update('none');
-  }
-  if(ovPowerChart){
-    ovPowerChart.data.labels = Array.from({length:points},(_,i)=> i===0?'':i===points-1?'now':'');
-    ovPowerChart.data.datasets[0].data = hist.pwr.slice(-points);
-    ovPowerChart.options.scales.y.max = Math.max(100, (lastSnap?.power_limit_w || 0), ...hist.pwr.slice(-points).filter(v=>v!=null).map(v=>Math.ceil(v / 10) * 10));
-    ovPowerChart.update('none');
-  }
+function formatSampleTime(timestamp) {
+  const d = timestamp ? new Date(timestamp * 1000) : new Date();
+  return d.toLocaleTimeString([], {hour:'numeric', minute:'2-digit', second:'2-digit'});
 }
 
 function propRowsHtml(rows) {
@@ -1214,17 +1158,27 @@ function updateOverviewMetrics(s) {
   setText('ov-util-legend', s.util_pct!=null ? `${Math.round(s.util_pct)}%` : '<span class="na">N/A</span>');
   setText('ov-mem-active', total ? `${usedPct}%` : '<span class="na">N/A</span>');
   setText('ov-mem-legend', total ? `${availPct}%` : '<span class="na">N/A</span>');
+  const sampleTime = formatSampleTime(s.timestamp);
   setText('ov-temp-current', s.temp_c!=null ? `${Math.round(s.temp_c)}&deg;C` : '<span class="na">N/A</span>');
-  setText('ov-temp-meta', s.temp_max_c!=null ? `Thermal headroom to ${Math.round(s.temp_max_c)}&deg;C limit` : 'Thermal trend over the selected time window');
+  setText('ov-temp-meta', `Last sample: ${sampleTime}`);
+  setText('ov-temp-context',
+    s.temp_max_c!=null ? `Limit: ${Math.round(s.temp_max_c)}&deg;C` :
+    s.temp_c!=null ? '' :
+    'Temperature not reported by this telemetry source'
+  );
   setText('ov-power-current', s.power_w!=null ? `${s.power_w.toFixed(1)} W` : '<span class="na">N/A</span>');
-  setText('ov-power-meta', s.power_limit_w!=null ? `Power budget ${Math.round(s.power_limit_w)} W` : 'Board power trend over the selected time window');
+  setText('ov-power-meta', `Last sample: ${sampleTime}`);
+  setText('ov-power-context',
+    s.power_limit_w!=null ? `Limit: ${Math.round(s.power_limit_w)} W` :
+    s.power_w!=null ? '' :
+    'Power draw not reported by this telemetry source'
+  );
   updateOverviewUsageChart();
   if(!ovMemoryDonut) buildOverviewMemoryDonut();
   if(ovMemoryDonut){
     ovMemoryDonut.data.datasets[0].data = [usedPct, availPct];
     ovMemoryDonut.update('none');
   }
-  updateOverviewTrendCharts();
 }
 
 function renderOverviewProcTable() {
@@ -1594,8 +1548,6 @@ function switchTab(name, el) {
     if(name==='overview') {
       OV_TRACKS.forEach(tr=>{ if(ovCharts[tr.id]) ovCharts[tr.id].resize(); });
       if(ovUsageChart) ovUsageChart.resize();
-      if(ovTempChart) ovTempChart.resize();
-      if(ovPowerChart) ovPowerChart.resize();
     }
     if(name==='processes' && lastSnap){ renderProcTable(); updateProcSummary(lastSnap); }
     if(name==='memory' && lastSnap){ updateMemoryTab(lastSnap); updateMemChart(); }
@@ -1629,7 +1581,6 @@ function updateAll(s) {
 // ─── Boot ─────────────────────────────────────────────────────────────────────
 initOvCharts();
 buildOverviewUsageChart();
-buildOverviewTrendCharts();
 setOvWin(OV_WIN);
 pollOnce();
 connect();
