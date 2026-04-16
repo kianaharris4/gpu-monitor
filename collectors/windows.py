@@ -54,7 +54,9 @@ class WindowsCollector:
 
             snap.sources["gpu"] = "dxdiag"
             snap.sources["driver"] = "dxdiag"
-            snap.gaps["per_process_gpu_pct"] = "Per-process Windows GPU attribution is not wired up yet."
+            snap.gaps["processes"] = (
+                "Per-process GPU usage is not currently available from the Windows collector."
+            )
 
             if vendor == "nvidia":
                 luid = self._pick_luid_for_discrete(counters, used_luids)
@@ -327,6 +329,13 @@ $samples | ConvertTo-Json -Compress
             snap.gaps["utilization"] = "No Windows GPU engine counter matched this NVIDIA adapter; falling back to nvidia-smi utilization."
             snap.util_pct = match["util"]
 
+        if snap.util_pct == 0 and not snap.processes:
+            snap.gaps["utilization"] = (
+                "NVIDIA is reporting 0% utilization. On hybrid-graphics laptops, "
+                "the discrete GPU can remain idle when workloads are running on the integrated GPU "
+                "or no app is actively using CUDA, 3D, or video engines on this adapter."
+            )
+
     def _apply_windows_counter_metrics(self, snap, card, counters, luid):
         system_total_mb = self._system_ram_mb()
         shared_total = self._parse_mb(card.get("shared_memory"))
@@ -428,7 +437,7 @@ $samples | ConvertTo-Json -Compress
         return {
             # Task Manager's default GPU percentage on Windows typically follows
             # the busiest engine rather than summing every engine simultaneously.
-            "total": min(100.0, busiest) if busiest else None,
+            "total": min(100.0, busiest) if engine_info else None,
             "engine": EngineUtilization(**totals),
         }
 

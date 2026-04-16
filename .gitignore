@@ -12,6 +12,7 @@ env/
 build/
 dist/
 *.egg-info/
+pip-wheel-metadata/
 
 # Local runtime/cache output
 .tmp/
@@ -29,5 +30,14 @@ Thumbs.db
 
 # Test/coverage artifacts
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
 .coverage
+.coverage.*
 htmlcov/
+
+# Type checker / tooling outputs
+*.prof
+*.pid

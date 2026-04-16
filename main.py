@@ -13,6 +13,7 @@ from importlib.resources import as_file, files
 
 app = FastAPI()
 collector = None
+last_gap_signature = None
 
 
 def _is_normal_ws_disconnect(exc: Exception) -> bool:
@@ -24,6 +25,41 @@ def _is_normal_ws_disconnect(exc: Exception) -> bool:
         "websocket.close",
         "disconnect message",
     ])
+
+
+def _snapshot_label(snapshot, fallback_index):
+    name = getattr(snapshot, "device_name", None) or f"GPU {fallback_index}"
+    index = getattr(snapshot, "gpu_index", None)
+    return f"{name} (index {index})" if index is not None else name
+
+
+def _gap_signature(snapshots):
+    signature = []
+    for index, snapshot in enumerate(snapshots):
+        gaps = getattr(snapshot, "gaps", None) or {}
+        if not gaps:
+            continue
+        label = _snapshot_label(snapshot, index)
+        signature.append((label, tuple(sorted((str(key), str(value)) for key, value in gaps.items()))))
+    return tuple(signature)
+
+
+def _log_snapshot_gaps(snapshots):
+    global last_gap_signature
+    signature = _gap_signature(snapshots)
+    if signature == last_gap_signature:
+        return
+    last_gap_signature = signature
+    if not signature:
+        print("[INFO] Telemetry gaps cleared")
+        return
+    for label, gaps in signature:
+        for key, value in gaps:
+            print(f"[WARN] Telemetry gap [{label}] {key}: {value}")
+
+
+def _log_collection_error(source, exc):
+    print(f"[ERROR] {source} collection failed: {exc}")
 
 
 def _resolve_dashboard_ref():
@@ -81,8 +117,10 @@ async def snapshot():
         snapshots = get_cached_collector().collect()
         if not isinstance(snapshots, list):
             snapshots = [snapshots]
+        _log_snapshot_gaps(snapshots)
         return {"gpus": [s.to_dict() for s in snapshots]}
     except Exception as e:
+        _log_collection_error("/api/snapshot", e)
         return JSONResponse({"error": str(e), "gpus": []}, status_code=200)
 
 
@@ -94,6 +132,7 @@ async def websocket_endpoint(ws: WebSocket):
             snapshots = get_cached_collector().collect()
             if not isinstance(snapshots, list):
                 snapshots = [snapshots]
+            _log_snapshot_gaps(snapshots)
             await ws.send_json({"gpus": [s.to_dict() for s in snapshots]})
         except WebSocketDisconnect:
             break
@@ -104,6 +143,7 @@ async def websocket_endpoint(ws: WebSocket):
         except Exception as e:
             if _is_normal_ws_disconnect(e):
                 break
+            _log_collection_error("/ws", e)
             try:
                 await ws.send_json({"error": str(e), "gpus": []})
             except Exception:
