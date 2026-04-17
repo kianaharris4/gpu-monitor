@@ -108,14 +108,12 @@ body{font-family:'Segoe UI',SegoeUI,system-ui,-apple-system,sans-serif;backgroun
 .portal-inline-search{width:124px;height:26px;border:1px solid #8a8886;background:#fff;padding:0 10px;font:inherit;color:var(--text)}
 .portal-refresh{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--text2)}
 .portal-refresh-icon{font-size:16px;color:var(--azure)}
-.overview-metrics-layout{display:grid;grid-template-columns:280px minmax(640px,1fr);gap:34px;align-items:start}
-.overview-left-stack{display:flex;flex-direction:column;gap:22px;width:280px}
-.overview-chart-panel{width:280px}
-.overview-process-panel{min-height:590px}
-.overview-process-panel .azure-panel-b{display:flex;flex-direction:column;min-height:558px}
+.overview-metrics-layout{display:grid;grid-template-columns:280px 280px 240px;column-gap:34px;row-gap:26px;align-items:start;width:max-content;max-width:100%;overflow-x:auto}
+.overview-process-panel{grid-column:1 / -1;min-height:520px}
+.overview-process-panel .azure-panel-b{display:flex;flex-direction:column;min-height:488px}
 .overview-process-table-wrap{flex:1}
 .usage-canvas.compact{height:224px}
-.live-metric-row{display:grid;grid-template-columns:220px 220px;gap:14px;max-width:454px;margin-bottom:24px}
+.live-metric-row{display:flex;flex-direction:column;gap:14px;margin:0}
 .live-metric-card{background:#fff;border:1px solid var(--line);border-radius:2px;box-shadow:0 1px 3px rgba(0,0,0,.12);padding:12px 14px 12px;min-height:72px}
 .live-metric-label{font-size:13px;font-weight:600;color:var(--text);margin-bottom:14px}
 .live-metric-body{display:flex;align-items:center;gap:6px}
@@ -123,13 +121,16 @@ body{font-family:'Segoe UI',SegoeUI,system-ui,-apple-system,sans-serif;backgroun
 .live-metric-trend svg{display:block;width:72px;height:18px}
 .live-metric-value{font-size:20px;font-weight:600;line-height:1;color:var(--text)}
 .live-metric-sub{display:none}
-.memory-donut-wrap{display:flex;flex-direction:column;gap:18px;padding-bottom:18px}
-.memory-donut-canvas{height:280px}
+.memory-donut-wrap{display:flex;flex-direction:column;gap:12px;padding-bottom:0}
+.memory-donut-canvas{height:224px}
 .memory-donut-legend{display:flex;gap:28px;flex-wrap:nowrap;padding-left:10px}
 .memory-donut-item{display:flex;align-items:flex-start;gap:7px;min-width:78px}
 .memory-donut-swatch{width:4px;height:32px;border-radius:0}
 .memory-donut-label{font-size:13px;color:var(--text);font-weight:600;line-height:1.1}
 .memory-donut-value{font-size:20px;font-weight:400;line-height:1.1;margin-top:4px;color:var(--text)}
+.memory-donut-value-row{display:flex;align-items:baseline;gap:8px;margin-top:4px;white-space:nowrap}
+.memory-donut-value-row .memory-donut-value{margin-top:0}
+.memory-donut-detail{font-size:12px;color:var(--text2);line-height:1.2;white-space:nowrap}
 .card{background:var(--page);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow)}
 .metric{background:var(--page);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;min-height:92px;box-shadow:var(--shadow)}
 .ml{font-size:12px;color:var(--text2);margin-bottom:8px;font-weight:600}
@@ -208,6 +209,7 @@ select{font-size:12px;padding:5px 28px 5px 10px;border-radius:16px;border:1px so
 .azure-split{display:grid;grid-template-columns:minmax(250px,.78fr) minmax(0,2.62fr);gap:34px;align-items:start}
 .azure-half-row{display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:start}
 @media(max-width:980px){.azure-split,.azure-half-row{grid-template-columns:1fr}}
+@media(max-width:980px){.overview-metrics-layout{grid-template-columns:1fr}.overview-process-panel{grid-column:auto}.live-metric-row{max-width:none}}
 .prop-shell{padding:0}
 .prop-grid{display:grid;grid-template-columns:1fr 1fr;gap:92px}
 .prop-col{display:flex;flex-direction:column;gap:8px}
@@ -215,8 +217,8 @@ select{font-size:12px;padding:5px 28px 5px 10px;border-radius:16px;border:1px so
 .prop-k{color:var(--text2)}
 .prop-sep{color:var(--text3)}
 .prop-v{font-weight:500}
-.telemetry-banner{display:none;align-items:center;gap:10px;margin:-8px 0 18px;padding:11px 18px;background:#eff6ff;border-left:none;font-size:13px;line-height:18px;color:var(--text)}
-.telemetry-banner.visible{display:flex}
+.telemetry-banner{display:flex;align-items:center;gap:10px;margin:-8px 0 18px;padding:11px 18px;min-height:42px;background:#eff6ff;border-left:none;font-size:13px;line-height:18px;color:var(--text);visibility:hidden;opacity:0;transition:opacity .12s ease;box-sizing:border-box}
+.telemetry-banner.visible{visibility:visible;opacity:1}
 .telemetry-banner-icon{width:20px;height:20px;border:none;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:#0078d4;color:#fff;font-size:14px;font-weight:600;flex-shrink:0;margin-top:0}
 .telemetry-banner-title{display:none}
 .telemetry-banner ul{margin:0;padding:0;list-style:none}
@@ -243,19 +245,7 @@ select{font-size:12px;padding:5px 28px 5px 10px;border-radius:16px;border:1px so
 .azure-proc-table th:nth-child(3),.azure-proc-table td:nth-child(3){width:14%}
 .azure-proc-table th:nth-child(4),.azure-proc-table td:nth-child(4){width:22%}
 .azure-proc-table th:nth-child(5),.azure-proc-table td:nth-child(5){width:22%}
-.workload-grid{display:grid;grid-template-columns:190px 190px minmax(0,1fr);gap:10px;align-items:end;margin-bottom:16px}
-.workload-card{border:1px solid var(--line);background:#fff;padding:14px 16px;border-radius:2px}
-.workload-card-label{font-size:12px;color:var(--text);margin-bottom:10px}
-.workload-card-value{font-size:28px;font-weight:400;line-height:1}
-.workload-toolbar{display:flex;justify-content:flex-end}
-.workload-table{width:100%;border-collapse:collapse;font-size:12px}
-.workload-table th,.workload-table td{padding:10px 12px;border-bottom:1px solid var(--line2);text-align:left}
-.workload-table th{font-size:12px;font-weight:600;color:var(--text2)}
-.workload-status{display:inline-flex;align-items:center;gap:6px}
-.workload-status-dot{width:9px;height:9px;border-radius:50%;display:inline-block}
-.workload-running .workload-status-dot{background:#7fba00}
-.workload-stopped .workload-status-dot{background:#8a8886}
-.proc-spark{width:70px;height:14px;display:block}
+.proc-spark{width:72px;height:18px;display:block}
 .proc-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0 0;font-size:11px;color:var(--text2);border-top:1px solid #edebe9}
 .pager{display:flex;align-items:center;gap:14px}
 .pager-btn{color:var(--azure);font-weight:600}
@@ -433,7 +423,7 @@ canvas{image-rendering:auto}
 
     <div class="flat-section">
       <div class="flat-section-head">
-        <div class="flat-section-title">Key properties</div>
+        <div class="flat-section-title">Essentials</div>
         <div class="flat-section-links">
           <span class="pager-btn">View Cost</span>
           <span class="pager-btn">JSON View</span>
@@ -450,7 +440,6 @@ canvas{image-rendering:auto}
 
 <div class="page-tabs">
   <button class="page-tab active" onclick="switchTab('overview',this)">Overview</button>
-  <button class="page-tab" onclick="switchTab('processes',this)">Workload Usage</button>
   <button class="page-tab" onclick="switchTab('memory',this)">Memory</button>
 </div>
 
@@ -468,27 +457,7 @@ canvas{image-rendering:auto}
 
     <div class="section-caption">GPU metrics</div>
 
-    <div class="live-metric-row portal-section">
-      <div class="live-metric-card" id="ov-temp-card">
-        <div class="live-metric-label">Temperature</div>
-        <div class="live-metric-body">
-          <div class="live-metric-trend" id="ov-temp-trend"></div>
-          <div class="live-metric-value" id="ov-temp-current">--</div>
-        </div>
-        <div class="live-metric-sub" id="ov-temp-context"></div>
-      </div>
-      <div class="live-metric-card" id="ov-power-card">
-        <div class="live-metric-label">Power draw</div>
-        <div class="live-metric-body">
-          <div class="live-metric-trend" id="ov-power-trend"></div>
-          <div class="live-metric-value" id="ov-power-current">--</div>
-        </div>
-        <div class="live-metric-sub" id="ov-power-context"></div>
-      </div>
-    </div>
-
     <div class="overview-metrics-layout portal-section">
-      <div class="overview-left-stack">
       <div class="azure-panel">
         <div class="azure-panel-h">GPU usage</div>
         <div class="azure-panel-b">
@@ -515,22 +484,37 @@ canvas{image-rendering:auto}
               <div class="memory-donut-item">
                 <span class="memory-donut-swatch" style="background:#0078D4"></span>
                 <div>
-                  <div class="memory-donut-label">Used</div>
-                  <div class="memory-donut-value" id="ov-mem-active">--</div>
-                </div>
-              </div>
-              <div class="memory-donut-item">
-                <span class="memory-donut-swatch" style="background:#f7634c"></span>
-                <div>
-                  <div class="memory-donut-label">Available</div>
-                  <div class="memory-donut-value" id="ov-mem-legend">--</div>
+                  <div class="memory-donut-label">Memory used</div>
+                  <div class="memory-donut-value-row">
+                    <span class="memory-donut-value" id="ov-mem-active">--</span>
+                    <span class="memory-donut-detail" id="ov-mem-detail">--</span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      <div class="live-metric-row">
+        <div class="live-metric-card" id="ov-temp-card">
+          <div class="live-metric-label">Temperature</div>
+          <div class="live-metric-body">
+            <div class="live-metric-trend" id="ov-temp-trend"></div>
+            <div class="live-metric-value" id="ov-temp-current">--</div>
+          </div>
+          <div class="live-metric-sub" id="ov-temp-context"></div>
+        </div>
+        <div class="live-metric-card" id="ov-power-card">
+          <div class="live-metric-label">Power draw</div>
+          <div class="live-metric-body">
+            <div class="live-metric-trend" id="ov-power-trend"></div>
+            <div class="live-metric-value" id="ov-power-current">--</div>
+          </div>
+          <div class="live-metric-sub" id="ov-power-context"></div>
+        </div>
       </div>
+
       <div class="azure-panel overview-process-panel">
         <div class="azure-panel-h">GPU Usage per Process</div>
         <div class="azure-panel-b">
@@ -563,7 +547,7 @@ canvas{image-rendering:auto}
     </div>
 
   <div style="display:none">
-  <div class="section-caption">Key properties</div>
+  <div class="section-caption">Essentials</div>
   <div class="g2 portal-section">
     <div class="card" style="padding:14px 16px">
       <div class="portal-card-title" style="margin-bottom:10px">Hardware</div>
@@ -636,35 +620,6 @@ canvas{image-rendering:auto}
 </div>
 
 <!-- ════════ PROCESSES ════════ -->
-<div id="tab-processes" class="pane">
-  <div class="section-caption">Workload usage</div>
-  <div class="workload-grid">
-    <div class="workload-card">
-      <div class="workload-card-label">Total logical consumers</div>
-      <div class="workload-card-value" id="wl-total">--</div>
-    </div>
-    <div class="workload-card">
-      <div class="workload-card-label">Active consumers</div>
-      <div class="workload-card-value" id="wl-active">--</div>
-    </div>
-    <div class="workload-toolbar">
-      <select id="workload-grouping">
-        <option>No grouping</option>
-      </select>
-    </div>
-  </div>
-  <table class="workload-table">
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody id="workload-table"></tbody>
-  </table>
-</div>
-
 <!-- ════════ MEMORY ════════ -->
 <div id="tab-memory" class="pane">
   <div class="g2" style="margin-top:0;margin-bottom:12px">
@@ -725,13 +680,19 @@ const MAXHIST = 300;
 const RESOURCE_NAME = (location.hostname && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1')
   ? location.hostname.toUpperCase()
   : 'GPU-HOST';
+const AZURE_ESSENTIALS = {
+  subscription: 'AzLocalSFFSub',
+  subscriptionId: '608937df-4e8f-4dc5-8bc6-16f30646ebd9',
+  resourceGroup: 'sff-rg',
+  location: 'East US 2',
+};
 
 // ─── State ────────────────────────────────────────────────────────────────────
-let OV_WIN = 60, PROC_WIN = 60, MEM_WIN = 60;
-let selectedProc = null, procMetric = 'gpu';
+let OV_WIN = 60, MEM_WIN = 60;
 let lastSnap = null, lastCaps = {}, allSnaps = [], selectedGpuKey = null;
 let pollTimer = null;
 let sampleIntervalSec = 1;
+let telemetryBannerState = {text:'', visible:false, pendingText:null, pendingCount:0};
 const hist = {util:[],temp:[],pwr:[],mem:[],clk:[]};
 const procHist = {}; // pid_str → {gpu:[], mem:[], name, type}
 
@@ -895,7 +856,6 @@ function resetUiHistory() {
   });
   Object.keys(procHist).forEach(k => delete procHist[k]);
   lastHoverPct = null;
-  selectedProc = null;
 }
 function setGpuSelection(value) {
   selectedGpuKey = value;
@@ -905,11 +865,21 @@ function setGpuSelection(value) {
   if (!lastSnap) return;
   lastCaps = lastSnap.caps || {};
   updateAll(lastSnap);
+  updateTelemetryBanner(lastSnap, true);
 }
 window.setGpuSelection = setGpuSelection;
 
 function memLabel(m) {
   return m==='dedicated'?'Dedicated (VRAM)': m==='unified'?'Unified (SoC Memory)':'Shared (System Memory)';
+}
+function memModelShort(m) {
+  return m==='dedicated'?'Dedicated': m==='unified'?'Unified': m==='shared'?'Shared':'Unknown';
+}
+function essentialsMemoryType(m) {
+  if (!m) return '--';
+  const total = fmtGbNumberFromMb(m.total_mb);
+  const model = memModelShort(m.mem_model);
+  return total ? `${model} (${total} GB)` : memLabel(m.mem_model);
 }
 function memColor(m) {
   return m==='dedicated'?'#378ADD': m==='unified'?'#1D9E75':'#7F77DD';
@@ -967,6 +937,18 @@ const crosshairPlugin = {
     const {ctx,chartArea:{top,bottom}} = ch;
     ctx.save(); ctx.strokeStyle='rgba(128,128,128,.35)'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
     ctx.beginPath(); ctx.moveTo(ch._cx,top); ctx.lineTo(ch._cx,bottom); ctx.stroke(); ctx.restore();
+    if(ch._hi){
+      ctx.save();
+      ctx.setLineDash([]);
+      ctx.fillStyle = ch._hi.color || '#0078D4';
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(ch._hi.x, ch._hi.y, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+    }
   }
 };
 Chart.register(crosshairPlugin);
@@ -1037,16 +1019,25 @@ function setOvWin(v){
   const legacyPicker = document.getElementById('ov-win-legacy');
   if (legacyPicker) legacyPicker.value = String(OV_WIN);
   updateOverviewUsageChart();
+  updateOverviewMemoryChart();
   if (lastSnap) updateThermalPowerCards(lastSnap);
 } window.setOvWin=setOvWin;
 
-function azureLineOptions(maxValue, tickSuffix='') {
+function azureLineOptions(maxValue, tickSuffix='', tooltipFormatter=null) {
   return {
     responsive:true,
     maintainAspectRatio:false,
     animation:false,
     layout:{padding:{top:2,right:0,bottom:0,left:0}},
-    plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false}},
+    plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,callbacks:{
+      label:context => {
+        const value = context.parsed?.y;
+        if (tooltipFormatter) return tooltipFormatter(value, context);
+        const label = context.dataset?.label || '';
+        const numeric = Number.isFinite(Number(value)) ? Math.round(value) : value;
+        return `${label}: ${numeric}${tickSuffix}`;
+      }
+    }}},
     interaction:{mode:'index',intersect:false},
     elements:{line:{borderJoinStyle:'miter',borderCapStyle:'butt'},point:{radius:0,hoverRadius:0}},
     scales:{
@@ -1083,6 +1074,90 @@ function azureLineOptions(maxValue, tickSuffix='') {
   };
 }
 
+function overviewPairCharts() {
+  return [
+    {chart: ovUsageChart, key:'util', legendId:'ov-util-legend', fmt:value=>`${Math.round(value)}%`, color:'#0078D4'},
+    {chart: ovMemoryDonut, key:'mem', legendId:'ov-mem-active', fmt:value=>`${Math.round(value)}%`, color:'#0078D4'},
+  ].filter(item => item.chart);
+}
+
+function valueYForChart(chart, value) {
+  if(value == null || !Number.isFinite(Number(value))) return null;
+  return chart.scales.y.getPixelForValue(value);
+}
+
+function formatOverviewMemoryHover(value) {
+  if(value == null || !Number.isFinite(Number(value))) return '<span class="na">N/A</span>';
+  const pct = Math.round(value);
+  const total = lastSnap?.memory?.total_mb || 0;
+  if(!total) return {pct:`${pct}%`, detail:'<span class="na">N/A</span>'};
+  const usedMb = total * (Number(value) / 100);
+  return {pct:`${pct}%`, detail:`${fmtGbNumberFromMb(usedMb)}/${fmtGbNumberFromMb(total)} GB`};
+}
+
+function formatOverviewMemoryTooltip(value) {
+  if(value == null || !Number.isFinite(Number(value))) return 'Memory used: N/A';
+  const pct = Math.round(value);
+  const total = lastSnap?.memory?.total_mb || 0;
+  if(!total) return `Memory used: ${pct}%`;
+  const usedMb = total * (Number(value) / 100);
+  return `Memory used: ${pct}% (${fmtGbNumberFromMb(usedMb)}/${fmtGbNumberFromMb(total)} GB)`;
+}
+
+function highlightOverviewLineCharts(sourceChart, nativeEvent) {
+  if(!sourceChart || !nativeEvent) return;
+  const {left, right} = sourceChart.chartArea;
+  const rect = sourceChart.canvas.getBoundingClientRect();
+  const x = nativeEvent.clientX - rect.left;
+  const pct = Math.max(0, Math.min(1, (x - left) / Math.max(right - left, 1)));
+
+  overviewPairCharts().forEach(({chart, key, legendId, fmt, color}) => {
+    const data = chart.data.datasets[0].data || [];
+    const idx = Math.round(pct * Math.max(data.length - 1, 0));
+    const value = data[Math.min(idx, data.length - 1)];
+    const chartX = chart.chartArea.left + pct * (chart.chartArea.right - chart.chartArea.left);
+    const chartY = valueYForChart(chart, value);
+    chart._cx = chartX;
+    chart._hi = chartY == null ? null : {x: chartX, y: chartY, color};
+    if(value != null && chartY != null) {
+      chart.setActiveElements([{datasetIndex:0, index:idx}]);
+      chart.tooltip?.setActiveElements([{datasetIndex:0, index:idx}], {x:chartX, y:chartY});
+    } else {
+      chart.setActiveElements([]);
+      chart.tooltip?.setActiveElements([], {x:0, y:0});
+    }
+    chart.update('none');
+    if(value != null) {
+      if(key === 'mem') {
+        const memHover = formatOverviewMemoryHover(value);
+        setText(legendId, memHover.pct);
+        setText('ov-mem-detail', memHover.detail);
+      } else {
+        setText(legendId, fmt(value));
+      }
+    }
+  });
+}
+
+function clearOverviewLineHighlights() {
+  overviewPairCharts().forEach(({chart}) => {
+    chart._cx = null;
+    chart._hi = null;
+    chart.setActiveElements([]);
+    chart.tooltip?.setActiveElements([], {x:0, y:0});
+    chart.update('none');
+  });
+  if(lastSnap) updateOverviewMetrics(lastSnap);
+}
+
+function attachOverviewChartHover(canvasId, chartGetter) {
+  const canvas = document.getElementById(canvasId);
+  if(!canvas || canvas._overviewHoverAttached) return;
+  canvas._overviewHoverAttached = true;
+  canvas.addEventListener('mousemove', event => highlightOverviewLineCharts(chartGetter(), event));
+  canvas.addEventListener('mouseleave', clearOverviewLineHighlights);
+}
+
 function buildOverviewUsageChart() {
   const ctx = document.getElementById('ov-usage-chart');
   if(!ctx) return;
@@ -1098,6 +1173,7 @@ function buildOverviewUsageChart() {
     },
     options: azureLineOptions(100, '%')
   });
+  attachOverviewChartHover('ov-usage-chart', () => ovUsageChart);
 }
 
 function buildOverviewMemoryDonut() {
@@ -1105,41 +1181,25 @@ function buildOverviewMemoryDonut() {
   if(!ctx) return;
   if(ovMemoryDonut){ovMemoryDonut.destroy();ovMemoryDonut=null;}
   ovMemoryDonut = new Chart(ctx.getContext('2d'), {
-    type:'doughnut',
+    type:'line',
     data:{
-      labels:['Used','Available'],
-      datasets:[{
-        data:[0,100],
-        backgroundColor:['#0078D4','#F7634C'],
-        borderWidth:0,
-        hoverOffset:0
-      }]
+      labels:makeTimeWindowLabels(OV_WIN),
+      datasets:[
+        {label:'Memory used',data:[],borderColor:'#0078D4',backgroundColor:'transparent',borderWidth:2,pointRadius:0,tension:0,fill:false}
+      ]
     },
-    options:{
-      responsive:true,maintainAspectRatio:false,animation:false,
-      cutout:'54%',
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.label}: ${Math.round(c.raw||0)}%`}}}
-    },
-    plugins:[{
-      id:'centerText',
-      afterDraw(chart){
-        const meta = chart.getDatasetMeta(0);
-        if(!meta?.data?.length) return;
-        const x = meta.data[0].x, y = meta.data[0].y;
-        const used = Math.round(chart.data.datasets[0].data[0] || 0);
-        const {ctx} = chart;
-        ctx.save();
-        ctx.textAlign='center';
-        ctx.fillStyle='#323130';
-        ctx.font='400 28px Segoe UI';
-        ctx.fillText(`${used}%`, x, y + 4);
-        ctx.fillStyle='#323130';
-        ctx.font='12px Segoe UI';
-        ctx.fillText(chart.$memoryDetail || 'Used', x, y + 28);
-        ctx.restore();
-      }
-    }]
+    options: azureLineOptions(100, '%', formatOverviewMemoryTooltip)
   });
+  attachOverviewChartHover('ov-memory-donut', () => ovMemoryDonut);
+}
+
+function updateOverviewMemoryChart() {
+  if(!ovMemoryDonut){buildOverviewMemoryDonut();}
+  if(!ovMemoryDonut) return;
+  const points = windowPoints(OV_WIN);
+  ovMemoryDonut.data.labels = makeTimeWindowLabels(OV_WIN);
+  ovMemoryDonut.data.datasets[0].data = hist.mem.slice(-points);
+  ovMemoryDonut.update('none');
 }
 
 function updateOverviewUsageChart() {
@@ -1171,37 +1231,66 @@ function propRowsHtml(rows) {
   return rows.map(([k,v])=>`<div class="prop-row"><div class="prop-k">${k}</div><div class="prop-sep">:</div><div class="prop-v">${v}</div></div>`).join('');
 }
 
-function updateTelemetryBanner(s) {
+function setTelemetryBanner(text) {
   const banner = document.getElementById('telemetry-banner');
   const body = document.getElementById('telemetry-banner-body');
   if(!banner || !body) return;
 
+  telemetryBannerState.text = text;
+  telemetryBannerState.visible = Boolean(text);
+  body.textContent = text;
+  banner.classList.toggle('visible', Boolean(text));
+}
+
+function updateTelemetryBanner(s, immediate=false) {
   const gaps = s.gaps || {};
   const relevant = ['collector','utilization','memory','power','temperature','processes']
     .map(key => gaps[key])
     .filter(Boolean);
+  const nextText = relevant.length ? [...new Set(relevant)].slice(0, 4).join(' ') : '';
 
-  if(!relevant.length) {
-    banner.classList.remove('visible');
-    body.innerHTML = '';
+  if(immediate) {
+    setTelemetryBanner(nextText);
+    telemetryBannerState.pendingText = null;
+    telemetryBannerState.pendingCount = 0;
     return;
   }
 
-  const unique = [...new Set(relevant)].slice(0, 4);
-  body.textContent = unique.join(' ');
-  banner.classList.add('visible');
+  if(nextText === telemetryBannerState.text) {
+    telemetryBannerState.pendingText = null;
+    telemetryBannerState.pendingCount = 0;
+    return;
+  }
+
+  if(nextText !== telemetryBannerState.pendingText) {
+    telemetryBannerState.pendingText = nextText;
+    telemetryBannerState.pendingCount = 1;
+  } else {
+    telemetryBannerState.pendingCount += 1;
+  }
+
+  const requiredSamples = telemetryBannerState.visible && !nextText ? 4 : 2;
+  if(telemetryBannerState.pendingCount >= requiredSamples) {
+    setTelemetryBanner(nextText);
+    telemetryBannerState.pendingText = null;
+    telemetryBannerState.pendingCount = 0;
+  }
 }
 
 function sparklineSvg(values, color) {
   const vals = values.filter(v=>v!=null);
   if(vals.length < 2) return '<span class="na">building...</span>';
   const mn = Math.min(...vals), mx = Math.max(...vals, mn+1);
-  const pts = vals.map((v,j)=>{
-    const x=j/(Math.max(vals.length-1,1))*72;
+  const linePoints = vals.map((v,j)=>{
+    const x=1+j/(Math.max(vals.length-1,1))*70;
     const y=16-((v-mn)/(mx-mn)*12+2);
     return `${x.toFixed(1)},${y.toFixed(1)}`;
-  }).join(' ');
-  return `<svg class="proc-spark" viewBox="0 0 72 16"><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  });
+  const areaPoints = [`1,18`, ...linePoints, `71,18`].join(' ');
+  return `<svg class="proc-spark" viewBox="0 0 72 18" aria-hidden="true">
+    <polygon points="${areaPoints}" fill="#b9def7"/>
+    <polyline points="${linePoints.join(' ')}" fill="none" stroke="${color}" stroke-width="1.4" stroke-linecap="butt" stroke-linejoin="miter"/>
+  </svg>`;
 }
 
 function metricSparklineSvg(values, color) {
@@ -1251,21 +1340,15 @@ function updateOverviewMetrics(s) {
   const m = s.memory || {};
   const total = m.total_mb || 0, used = m.used_mb || 0, free = m.free_mb != null ? m.free_mb : Math.max(0,total-used);
   const usedPct = total ? Math.round((used/Math.max(total,1))*100) : 0;
-  const availPct = Math.max(0, 100 - usedPct);
   setText('ov-total-mem', total ? `${mbToGb(total).toFixed(1)} GB` : '<span class="na">N/A</span>');
   setText('ov-current-mem', total ? `${mbToGb(used).toFixed(1)}/${mbToGb(total).toFixed(1)} GB` : '<span class="na">N/A</span>');
   setText('ov-free-mem', total ? `${mbToGb(free).toFixed(1)} GB` : '<span class="na">N/A</span>');
   setText('ov-util-legend', s.util_pct!=null ? `${Math.round(s.util_pct)}%` : '<span class="na">N/A</span>');
   setText('ov-mem-active', total ? `${usedPct}%` : '<span class="na">N/A</span>');
-  setText('ov-mem-legend', total ? `${availPct}%` : '<span class="na">N/A</span>');
+  setText('ov-mem-detail', total ? `${fmtGbNumberFromMb(used)}/${fmtGbNumberFromMb(total)} GB` : '<span class="na">N/A</span>');
   updateThermalPowerCards(s);
   updateOverviewUsageChart();
-  if(!ovMemoryDonut) buildOverviewMemoryDonut();
-  if(ovMemoryDonut){
-    ovMemoryDonut.data.datasets[0].data = [usedPct, availPct];
-    ovMemoryDonut.$memoryDetail = total ? `${fmtGbNumberFromMb(used)}/${fmtGbNumberFromMb(total)} GB used` : 'Used';
-    ovMemoryDonut.update('none');
-  }
+  updateOverviewMemoryChart();
 }
 
 function renderOverviewProcTable() {
@@ -1276,7 +1359,7 @@ function renderOverviewProcTable() {
     const k = String(p.pid);
     const ph = procHist[k];
     const col = PROC_COLORS[idx%PROC_COLORS.length];
-    const trend = ph ? sparklineSvg(ph.gpu.slice(-windowPoints(PROC_WIN)), col) : '<span class="na">building...</span>';
+    const trend = ph ? sparklineSvg(ph.gpu.slice(-windowPoints(OV_WIN)), col) : '<span class="na">building...</span>';
     const gpuMem = p.mem_mb!=null ? `${mbToGb(p.mem_mb).toFixed(1)} GB` : '<span class="na">N/A</span>';
     const hostMem = memModel==='dedicated' ? '<span class="na">N/A</span>' : gpuMem;
     const name = (p.name || 'Unknown').length > 22 ? `${(p.name || 'Unknown').slice(0,22)}...` : (p.name || 'Unknown');
@@ -1353,8 +1436,6 @@ function updateInsight(s) {
 }
 
 // ─── Process chart ────────────────────────────────────────────────────────────
-let procChart = null;
-
 function pushProcHist(s) {
   const live = new Set();
   (s.processes||[]).forEach(p=>{
@@ -1366,35 +1447,6 @@ function pushProcHist(s) {
     if(procHist[k].mem.length>MAXHIST) procHist[k].mem.shift();
   });
   Object.keys(procHist).forEach(k=>{ if(!live.has(k)) delete procHist[k]; });
-}
-
-function buildProcDatasets() {
-  const points = windowPoints(PROC_WIN);
-  return Object.keys(procHist).map((k,i)=>{
-    const ph=procHist[k], col=PROC_COLORS[i%PROC_COLORS.length];
-    const active=selectedProc===null||selectedProc===k;
-    return {label:ph.name, data:(procMetric==='gpu'?ph.gpu:ph.mem).slice(-points),
-      borderColor:col, backgroundColor:col+(active?'28':'08'), borderWidth:active?1.5:.5,
-      fill:procMetric==='gpu'?'stack':false, pointRadius:0, tension:.35, spanGaps:true,
-      order:Object.keys(procHist).length-i};
-  });
-}
-
-function buildProcChart() {
-  const ctx = document.getElementById('proc-chart'); if(!ctx) return;
-  if(procChart){procChart.destroy();procChart=null;}
-  const points = windowPoints(PROC_WIN);
-  procChart = new Chart(ctx.getContext('2d'),{type:'line',
-    data:{labels:Array.from({length:points},()=>''),datasets:buildProcDatasets()},
-    options:{responsive:true,maintainAspectRatio:false,animation:false,
-      layout:{padding:{top:4,bottom:4}},interaction:{mode:'index',intersect:false},
-      plugins:{legend:{display:false},tooltip:{enabled:false,external:handleProcTooltip}},
-      scales:{x:{display:false,stacked:procMetric==='gpu'},
-        y:{stacked:procMetric==='gpu',min:0,max:procMetric==='gpu'?100:undefined,
-          ticks:{font:{size:9},color:'rgba(128,128,128,.7)',maxTicksLimit:4},
-          grid:{color:'rgba(128,128,128,.07)'}}}
-    }
-  });
 }
 
 function handleProcTooltip(ctx) {
@@ -1414,16 +1466,6 @@ function handleProcTooltip(ctx) {
   el.style.display='block';
 }
 
-function updateProcChart() {
-  if(!procChart){buildProcChart();return;}
-  procChart.data.labels=Array.from({length:windowPoints(PROC_WIN)},()=>'');
-  procChart.data.datasets=buildProcDatasets();
-  procChart.options.scales.x.stacked=procMetric==='gpu';
-  procChart.options.scales.y.stacked=procMetric==='gpu';
-  procChart.options.scales.y.max=procMetric==='gpu'?100:undefined;
-  procChart.update('none');
-}
-
 function renderProcLegend() {
   const keys=Object.keys(procHist);
   document.getElementById('proc-legend').innerHTML=keys.map((k,i)=>{
@@ -1432,28 +1474,6 @@ function renderProcLegend() {
       <span style="width:10px;height:10px;border-radius:2px;background:${col}"></span>
       ${procHist[k].name.length>22?procHist[k].name.slice(0,22)+'…':procHist[k].name}</span>`;
   }).join('');
-}
-
-function renderProcTable() {
-  if(!lastSnap) return;
-  const procs=lastSnap.processes||[];
-  const workloadBody = document.getElementById('workload-table');
-  if(!workloadBody) return;
-  const sorted=[...procs].sort((a,b)=>
-    (b.gpu_pct||0)-(a.gpu_pct||0) ||
-    (b.mem_mb||0)-(a.mem_mb||0) ||
-    (a.name||'').localeCompare(b.name||''));
-
-  workloadBody.innerHTML = sorted.map((p)=>{
-    const active = (p.gpu_pct||0) > 0 || (p.mem_mb||0) > 0;
-    const name = p.name || `PID ${p.pid ?? '--'}`;
-    const type = p.type || 'Local process';
-    return `<tr>
-      <td>${name}</td>
-      <td>${type}</td>
-      <td><span class="workload-status ${active ? 'workload-running' : 'workload-stopped'}"><span class="workload-status-dot"></span>${active ? 'Running' : 'Stopped'}</span></td>
-    </tr>`;
-  }).join('') || '<tr><td colspan="3" class="na">No workload data available.</td></tr>';
 }
 
 function updateProcSummary(s) {
@@ -1473,20 +1493,13 @@ function updateProcSummary(s) {
   setText('ps-mem-s', 'of '+mbToGb(memTotal).toFixed(1)+' GB');
   setText('ps-top', topN.length>14?topN.slice(0,14)+'…':topN);
   setText('ps-top-s', topG?Math.round(topG)+'% GPU · '+topMs:'—');
-  setText('wl-total', procs.length);
-  setText('wl-active', procs.filter(p=>(p.gpu_pct||0) > 0 || (p.mem_mb||0) > 0).length);
   const memPct=tM/memTotal*100, cShare=(tc['Compute']||0)/Math.max(procs.length,1);
   let ins='Utilization is moderate. Click a row or legend item to isolate a process.';
-  if(cShare>=.5&&cG>60) ins='Compute workloads dominate. GPU and memory pressure are correlated.';
+  if(cShare>=.5&&cG>60) ins='Compute processes dominate. GPU and memory pressure are correlated.';
   else if(cG>80) ins='GPU near saturation. Check for scheduling contention or thermal throttling.';
-  else if(memPct>80) ins='Memory pressure is high relative to GPU utilization — workloads may be memory-bound.';
+  else if(memPct>80) ins='Memory pressure is high relative to GPU utilization — processes may be memory-bound.';
   setText('proc-insight', ins);
 }
-
-function toggleProc(k) { selectedProc=(selectedProc===k)?null:k; renderProcLegend(); renderProcTable(); updateProcChart(); }
-window.toggleProc=toggleProc;
-function setProcMetric(v){procMetric=v;updateProcChart();renderProcTable();} window.setProcMetric=setProcMetric;
-function setProcWin(v){PROC_WIN=parseInt(v);updateProcChart();renderProcTable();} window.setProcWin=setProcWin;
 
 // ─── Memory tab ───────────────────────────────────────────────────────────────
 let memChart=null;
@@ -1582,13 +1595,17 @@ function deviceInfoRows(s) {
     ['Mem clock',      s.mem_clock_mhz ? (s.mem_clock_mhz/1000).toFixed(2) + ' GHz' : (caps.mem_clock===false ? 'N/A (shared)' : '--')],
   ];
   const left = [
+    ['Subscription', AZURE_ESSENTIALS.subscription],
+    ['Subscription ID', AZURE_ESSENTIALS.subscriptionId],
+    ['Resource group', AZURE_ESSENTIALS.resourceGroup],
+    ['Location', AZURE_ESSENTIALS.location],
     ['GPU', s.device_name||'--'],
     ['PCI location', s.pcie_info || (s.bus_id ? s.bus_id : 'Integrated')],
-    ['Memory type', m ? memLabel(m.mem_model) : '--'],
-    ['Driver name', s.vendor ? `${String(s.vendor).toUpperCase()} driver` : '--'],
-    ['Driver version', s.driver_version||'--'],
   ];
   const right = [
+    ['Memory type', essentialsMemoryType(m)],
+    ['Driver name', s.vendor ? `${String(s.vendor).toUpperCase()} driver` : '--'],
+    ['Driver version', s.driver_version||'--'],
     ['Dedicated VRAM present', m?.mem_model === 'dedicated' ? 'True' : 'False'],
     ['Last checked', formatCheckedTimestamp(s.timestamp)],
   ];
@@ -1637,7 +1654,6 @@ function switchTab(name, el) {
       OV_TRACKS.forEach(tr=>{ if(ovCharts[tr.id]) ovCharts[tr.id].resize(); });
       if(ovUsageChart) ovUsageChart.resize();
     }
-    if(name==='processes' && lastSnap){ renderProcTable(); updateProcSummary(lastSnap); }
     if(name==='memory' && lastSnap){ updateMemoryTab(lastSnap); updateMemChart(); }
   }, 40);
 }
@@ -1656,14 +1672,9 @@ function updateAll(s) {
   safeCall(() => updateMemoryTab(s), 'memory-tab');
 
   const activeTab = document.querySelector('.pane.active')?.id;
-  if(activeTab==='tab-processes') {
-    safeCall(() => updateProcSummary(s), 'workload-summary');
-    safeCall(() => renderProcTable(), 'workload-table');
-  }
   if(activeTab==='tab-memory') {
     safeCall(() => updateMemChart(), 'memory-chart');
   }
-  safeCall(() => updateProcSummary(s), 'workload-summary');
 }
 
 // ─── Boot ─────────────────────────────────────────────────────────────────────

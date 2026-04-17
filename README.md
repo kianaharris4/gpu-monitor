@@ -15,7 +15,7 @@ Metric coverage varies by platform and driver. When a vendor API does not expose
 
 For the backend design and why each telemetry command is used, see [BACKEND_TELEMETRY_CONCEPTS.md](BACKEND_TELEMETRY_CONCEPTS.md).
 
-For details on what each **Key properties** value can mean, see [KEY_PROPERTIES_REFERENCE.md](KEY_PROPERTIES_REFERENCE.md).
+For details on what each **Essentials** value can mean, see [KEY_PROPERTIES_REFERENCE.md](KEY_PROPERTIES_REFERENCE.md).
 
 ## Quick start
 

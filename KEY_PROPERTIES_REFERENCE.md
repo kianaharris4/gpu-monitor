@@ -1,14 +1,18 @@
-# Key Properties Reference
+# Essentials Reference
 
-The **Key properties** section summarizes the selected GPU snapshot returned by the active collector. Values can vary by platform, driver, permissions, and vendor telemetry support. When a collector cannot provide a field, the dashboard usually displays `--`, `N/A`, or an informational telemetry banner.
+The **Essentials** section summarizes the selected GPU snapshot returned by the active collector. Values can vary by platform, driver, permissions, and vendor telemetry support. When a collector cannot provide a field, the dashboard usually displays `--`, `N/A`, or an informational telemetry banner.
 
-## Overview Key Properties
+## Overview Essentials
 
 | Key property | Backing field or expression | Possible values | What it means |
 | --- | --- | --- | --- |
+| `Subscription` | `AZURE_ESSENTIALS.subscription` | Example: `Example Subscription Name` | Azure Portal-style subscription display value. In the local dashboard this is currently a placeholder, not a live Azure Resource Manager lookup. |
+| `Subscription ID` | `AZURE_ESSENTIALS.subscriptionId` | Example: `608937df-4e8f-4dc5-8bc6-16f30646ebd9` | Azure Portal-style subscription GUID. In the local dashboard this is currently a placeholder, not a live Azure Resource Manager lookup. |
+| `Resource group` | `AZURE_ESSENTIALS.resourceGroup` | Example: `example-rg` | Azure Portal-style resource group. In the local dashboard this is currently a placeholder. |
+| `Location` | `AZURE_ESSENTIALS.location` | Example: `East US 2` | Azure Portal-style Azure region. In the local dashboard this is currently a placeholder. |
 | `GPU` | `device_name` | A detected adapter name such as `NVIDIA GeForce RTX 4050 Laptop GPU`, `Intel(R) Iris(R) Xe Graphics`, `NVIDIA Jetson`, `NVIDIA telemetry unavailable`, `No supported GPU detected`, or `--` | The selected GPU or placeholder device name. `--` means the collector did not provide a name. Placeholder names are used so the UI can still explain why telemetry is missing. |
 | `PCI location` | `pcie_info`, then `bus_id`, otherwise `Integrated` | PCI/PCIe location text, NVIDIA bus IDs such as `00000000:01:00.0`, `Integrated`, or `--` | Identifies where the GPU is attached. `Integrated` is used when no discrete PCI bus ID is available, which is common for integrated GPUs or some Windows/UMA devices. |
-| `Memory type` | `memory.mem_model`, displayed through `memLabel()` | `Dedicated (VRAM)`, `Unified (SoC Memory)`, `Shared (System Memory)`, or `--` | Describes the memory architecture. Dedicated means separate GPU VRAM. Unified means SoC memory shared between CPU/GPU, common on Jetson. Shared means system RAM used by an integrated/mobile GPU. |
+| `Memory type` | `memory.mem_model` plus `memory.total_mb`, displayed through `essentialsMemoryType()` | Examples: `Dedicated (6 GB)`, `Shared (15.9 GB)`, `Unified (16 GB)`, `Dedicated (VRAM)`, `Shared (System Memory)`, or `--` | Combines the memory architecture with the reported GPU-accessible memory capacity. Dedicated means separate GPU VRAM. Unified means SoC memory shared between CPU/GPU, common on Jetson. Shared means system RAM used by an integrated/mobile GPU. If the total capacity is missing, the dashboard falls back to the architecture label. |
 | `Driver name` | `vendor` formatted as `<VENDOR> driver` | `NVIDIA driver`, `INTEL driver`, `AMD driver`, `UNKNOWN driver`, or `--` | A friendly driver label derived from the detected vendor. It does not necessarily name the exact kernel module or Windows driver package. |
 | `Driver version` | `driver_version` | Vendor version strings such as NVIDIA driver versions, Windows `dxdiag` driver versions, or `--` | The driver version reported by the active collector. Availability depends on collector support and driver tooling. |
 | `Dedicated VRAM present` | `memory.mem_model === "dedicated"` | `True` or `False` | `True` means the selected GPU snapshot reports dedicated VRAM. `False` includes shared-memory integrated GPUs, unified-memory SoCs, and fallback snapshots with no dedicated VRAM. |
@@ -40,4 +44,3 @@ The **Key properties** section summarizes the selected GPU snapshot returned by 
 | Jetson collector | Device name is generally `NVIDIA Jetson`; memory is typically `Unified (SoC Memory)` from `tegrastats`. |
 | Intel Linux collector | GPU name is derived from `lspci` or `/sys/class/drm` when available. Memory is `Shared (System Memory)`. If device metadata is unavailable, the dashboard may use a generic Intel GPU name. |
 | Null/fallback collector | Uses placeholder names such as `NVIDIA telemetry unavailable` or `No supported GPU detected` and emits telemetry availability messages explaining what is missing. |
-
