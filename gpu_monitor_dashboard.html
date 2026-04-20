@@ -217,6 +217,7 @@ select{font-size:12px;padding:5px 28px 5px 10px;border-radius:16px;border:1px so
 .prop-k{color:var(--text2)}
 .prop-sep{color:var(--text3)}
 .prop-v{font-weight:500}
+.prop-muted{color:var(--text3);font-weight:400}
 .telemetry-banner{display:flex;align-items:center;gap:10px;margin:-8px 0 18px;padding:11px 18px;min-height:42px;background:#eff6ff;border-left:none;font-size:13px;line-height:18px;color:var(--text);visibility:hidden;opacity:0;transition:opacity .12s ease;box-sizing:border-box}
 .telemetry-banner.visible{visibility:visible;opacity:1}
 .telemetry-banner-icon{width:20px;height:20px;border:none;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:#0078d4;color:#fff;font-size:14px;font-weight:600;flex-shrink:0;margin-top:0}
@@ -255,6 +256,39 @@ select{font-size:12px;padding:5px 28px 5px 10px;border-radius:16px;border:1px so
 .gpu-choice.active{border-color:var(--azure);background:var(--azure-soft);color:#004578;font-weight:600}
 .gpu-choice-title{white-space:nowrap}
 .gpu-choice-check{display:none}
+.empty-state{display:none;min-height:520px;align-items:center;justify-content:center;text-align:center;padding:56px 24px 72px;color:var(--text)}
+.portal-body.empty-mode #empty-state{display:flex}
+.portal-body.empty-mode #overview-azure-shell,.portal-body.empty-mode .page-tabs,.portal-body.empty-mode .pane{display:none!important}
+.empty-state-card{max-width:720px;margin:0 auto}
+.empty-gpu-art{width:230px;height:168px;margin:0 auto 22px;color:#8a8d8f}
+.empty-gpu-art svg{width:100%;height:100%;display:block}
+.empty-state-title{font-size:26px;font-weight:600;line-height:1.2;margin-bottom:28px;color:#111}
+.empty-state-copy{font-size:18px;line-height:1.35;color:#1f1f1f;max-width:700px;margin:0 auto 50px}
+.empty-state-actions{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}
+.azure-primary-button,.azure-secondary-button{height:42px;border-radius:4px;font:400 16px 'Segoe UI',SegoeUI,sans-serif;padding:0 18px;cursor:pointer;background:#fff}
+.azure-primary-button{border:2px solid #0078d4;color:#1f1f1f}
+.azure-primary-button:hover{background:#eff6fc}
+.azure-secondary-button{border:1px solid #8a8886;color:#323130}
+.azure-secondary-button:hover{background:#f3f2f1}
+.help-scrim{position:fixed;inset:0;background:rgba(0,0,0,.18);z-index:50;display:none}
+.help-scrim.open{display:block}
+.help-flyout{position:fixed;top:34px;right:0;width:min(460px,100vw);height:calc(100vh - 34px);background:#fff;box-shadow:-8px 0 24px rgba(0,0,0,.18);z-index:51;transform:translateX(100%);transition:transform .18s ease;display:flex;flex-direction:column;border-left:1px solid var(--line)}
+.help-flyout.open{transform:translateX(0)}
+.help-flyout-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:20px 22px 14px;border-bottom:1px solid var(--line)}
+.help-flyout-title{font-size:20px;font-weight:600;line-height:1.25;color:var(--text)}
+.help-flyout-sub{font-size:13px;color:var(--text2);margin-top:6px;line-height:1.4}
+.help-close{border:none;background:transparent;font-size:24px;line-height:1;color:#605e5c;cursor:pointer;padding:0 2px}
+.help-flyout-body{padding:18px 22px 24px;overflow:auto}
+.help-section{margin-bottom:22px}
+.help-section h3{font-size:14px;font-weight:600;margin-bottom:8px;color:var(--text)}
+.help-section p{font-size:13px;color:var(--text2);line-height:1.45;margin-bottom:10px}
+.help-source-list{display:flex;flex-direction:column;border:1px solid var(--line);border-bottom:none}
+.help-source-row{display:grid;grid-template-columns:88px minmax(0,1fr);gap:12px;padding:11px 12px;border-bottom:1px solid var(--line);font-size:13px;line-height:1.35}
+.help-source-row strong{color:var(--text)}
+.help-source-row span{color:var(--text2)}
+.help-checklist{display:flex;flex-direction:column;gap:9px;margin-top:8px}
+.help-check{display:flex;gap:8px;align-items:flex-start;font-size:13px;color:var(--text2);line-height:1.4}
+.help-check::before{content:"";width:6px;height:6px;border-radius:50%;background:#0078d4;margin-top:6px;flex-shrink:0}
 @media(max-width:980px){.prop-grid,.azure-metric-row{grid-template-columns:1fr}.prop-row{grid-template-columns:130px 12px minmax(0,1fr)}.portal-shell{grid-template-columns:1fr}.portal-sidebar{border-right:none;border-bottom:1px solid var(--line)}.portal-search{display:none}}
 canvas{image-rendering:auto}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
@@ -403,6 +437,42 @@ canvas{image-rendering:auto}
   </div>
 </div>
 <div class="portal-body">
+  <div id="empty-state" class="empty-state" aria-live="polite">
+    <div class="empty-state-card">
+      <div class="empty-gpu-art" aria-hidden="true">
+        <svg viewBox="0 0 260 190" role="img">
+          <g fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="square" opacity=".78">
+            <path d="M48 64v60" />
+            <path d="M39 72h9M39 94h9M39 116h9" />
+            <path d="M53 76h146a9 9 0 0 1 9 9v45a9 9 0 0 1-9 9H53z" fill="currentColor" stroke="none" opacity=".55"/>
+            <path d="M74 139h37v14H74zM126 139h23v14h-23z" fill="currentColor" stroke="none" opacity=".55"/>
+            <circle cx="91" cy="107" r="27" fill="#fff" opacity=".9" stroke="none"/>
+            <circle cx="162" cy="107" r="27" fill="#fff" opacity=".9" stroke="none"/>
+            <g fill="currentColor" stroke="none" opacity=".62">
+              <path d="M91 83c7 10 7 17 0 24-7-7-7-14 0-24z"/>
+              <path d="M115 107c-10 7-17 7-24 0 7-7 14-7 24 0z"/>
+              <path d="M91 131c-7-10-7-17 0-24 7 7 7 14 0 24z"/>
+              <path d="M67 107c10-7 17-7 24 0-7 7-14 7-24 0z"/>
+              <path d="M162 83c7 10 7 17 0 24-7-7-7-14 0-24z"/>
+              <path d="M186 107c-10 7-17 7-24 0 7-7 14-7 24 0z"/>
+              <path d="M162 131c-7-10-7-17 0-24 7 7 7 14 0 24z"/>
+              <path d="M138 107c10-7 17-7 24 0-7 7-14 7-24 0z"/>
+            </g>
+            <path d="M60 24 214 178" stroke-width="9" opacity=".95"/>
+          </g>
+        </svg>
+      </div>
+      <div class="empty-state-title">No GPU or NPU to display</div>
+      <div class="empty-state-copy" id="empty-state-copy">
+        We didn&apos;t find a GPU or NPU on this machine. If this is unexpected, you might need to install a new or updated driver. This dashboard relies on installed OS and vendor drivers to show GPU and NPU information.
+      </div>
+      <div class="empty-state-actions">
+        <button class="azure-primary-button" type="button" onclick="openTelemetryHelp()">Learn more</button>
+        <button class="azure-secondary-button" type="button" onclick="pollOnce()">Try refresh</button>
+      </div>
+    </div>
+  </div>
+
   <div id="overview-azure-shell">
     <div class="flat-section">
       <div class="flat-inline-title" style="margin-bottom:10px">Select GPU</div>
@@ -672,6 +742,40 @@ canvas{image-rendering:auto}
 </main>
 </div>
 </div>
+<div id="help-scrim" class="help-scrim" onclick="closeTelemetryHelp()" aria-hidden="true"></div>
+<aside id="telemetry-help" class="help-flyout" aria-hidden="true" aria-labelledby="telemetry-help-title">
+  <div class="help-flyout-head">
+    <div>
+      <div id="telemetry-help-title" class="help-flyout-title">How GPU telemetry is detected</div>
+      <div class="help-flyout-sub">The dashboard reads local OS and vendor telemetry. If those tools are missing, blocked, or cannot see the device, there may be nothing to display.</div>
+    </div>
+    <button class="help-close" type="button" onclick="closeTelemetryHelp()" aria-label="Close">&times;</button>
+  </div>
+  <div class="help-flyout-body">
+    <div class="help-section">
+      <h3>Where the data comes from</h3>
+      <div class="help-source-list">
+        <div class="help-source-row"><strong>NVIDIA</strong><span>Uses the NVIDIA driver tools, usually <code>nvidia-smi</code>. On Jetson devices, telemetry comes from Jetson tools such as <code>tegrastats</code>.</span></div>
+        <div class="help-source-row"><strong>Intel</strong><span>Uses Intel GPU driver telemetry. On Linux this commonly comes through <code>intel_gpu_top</code>; on Windows it comes from GPU performance counters.</span></div>
+        <div class="help-source-row"><strong>AMD</strong><span>Uses AMD telemetry tools when available, such as <code>rocm-smi</code> on supported Linux systems.</span></div>
+        <div class="help-source-row"><strong>Windows</strong><span>Uses Windows GPU performance counters and driver metadata, with vendor tools used when they provide better coverage.</span></div>
+      </div>
+    </div>
+    <div class="help-section">
+      <h3>Things to check</h3>
+      <div class="help-checklist">
+        <div class="help-check">Confirm the GPU or NPU appears in the operating system device list.</div>
+        <div class="help-check">Install or update the vendor driver, then restart the dashboard process.</div>
+        <div class="help-check">Make sure the dashboard user can run the telemetry command, such as <code>nvidia-smi</code>, <code>intel_gpu_top</code>, <code>rocm-smi</code>, or <code>tegrastats</code>.</div>
+        <div class="help-check">If the device is remote, containerized, or running under restricted permissions, confirm the hardware and driver tools are visible inside that environment.</div>
+      </div>
+    </div>
+    <div class="help-section">
+      <h3>Why this can happen</h3>
+      <p>Some machines genuinely do not have a GPU or NPU exposed to the OS. Other times the device exists, but the driver utility is missing, requires elevated permissions, or reports a format the dashboard does not yet understand.</p>
+    </div>
+  </div>
+</aside>
 
 <script>
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -695,6 +799,54 @@ let sampleIntervalSec = 1;
 let telemetryBannerState = {text:'', visible:false, pendingText:null, pendingCount:0};
 const hist = {util:[],temp:[],pwr:[],mem:[],clk:[]};
 const procHist = {}; // pid_str → {gpu:[], mem:[], name, type}
+
+function isUnavailableSnapshot(s) {
+  if (!s) return true;
+  const name = String(s.device_name || '').toLowerCase();
+  const caps = s.caps || {};
+  const hasAnyTelemetry = ['utilization','memory','power','temperature'].some(key => caps[key] !== false);
+  const looksLikeFallback = /no supported|telemetry unavailable/.test(name);
+  const hasNoMemory = !s.memory || Number(s.memory.total_mb || 0) <= 0;
+  return looksLikeFallback && !hasAnyTelemetry && hasNoMemory;
+}
+
+function emptyStateMessage(reason='') {
+  const machine = RESOURCE_NAME || 'this machine';
+  const cleanReason = String(reason || '').trim();
+  if(cleanReason) return `We didn't find a GPU or NPU on ${machine}. ${cleanReason} If this is unexpected, you might need to install or update the relevant driver or telemetry tool.`;
+  return `We didn't find a GPU or NPU on ${machine}. If this is unexpected, you might need to install a new or updated driver. This dashboard relies on installed OS and vendor drivers to show GPU and NPU information.`;
+}
+
+function setEmptyState(active, reason='') {
+  const body = document.querySelector('.portal-body');
+  const copy = document.getElementById('empty-state-copy');
+  if(!body || !copy) return;
+  body.classList.toggle('empty-mode', active);
+  if(active) copy.textContent = emptyStateMessage(reason);
+}
+
+function openTelemetryHelp() {
+  document.getElementById('help-scrim')?.classList.add('open');
+  const flyout = document.getElementById('telemetry-help');
+  if(flyout) {
+    flyout.classList.add('open');
+    flyout.setAttribute('aria-hidden', 'false');
+  }
+}
+window.openTelemetryHelp = openTelemetryHelp;
+
+function closeTelemetryHelp() {
+  document.getElementById('help-scrim')?.classList.remove('open');
+  const flyout = document.getElementById('telemetry-help');
+  if(flyout) {
+    flyout.classList.remove('open');
+    flyout.setAttribute('aria-hidden', 'true');
+  }
+}
+window.closeTelemetryHelp = closeTelemetryHelp;
+document.addEventListener('keydown', event => {
+  if(event.key === 'Escape') closeTelemetryHelp();
+});
 
 // ─── WebSocket ────────────────────────────────────────────────────────────────
 function connect() {
@@ -736,12 +888,21 @@ function applyPayload(data) {
     document.getElementById('status-txt').textContent = 'Error';
     setText('hdr-status-inline', 'Error');
     setText('hdr-sub', data.error);
+    allSnaps = [];
+    lastSnap = null;
+    updateGpuPicker(allSnaps);
+    setEmptyState(true, data.error);
     return;
   }
   allSnaps = Array.isArray(data) ? data : (data.gpus || []);
   updateGpuPicker(allSnaps);
   lastSnap = getSelectedSnapshot(allSnaps);
-  if (!lastSnap) return;
+  const emptyReason = data.error || lastSnap?.gaps?.collector || '';
+  if (!lastSnap || isUnavailableSnapshot(lastSnap)) {
+    setEmptyState(true, emptyReason);
+    return;
+  }
+  setEmptyState(false);
   lastCaps = lastSnap.caps || {};
   safeCall(() => updateAll(lastSnap), 'updateAll');
 }
@@ -863,6 +1024,11 @@ function setGpuSelection(value) {
   updateGpuPicker(allSnaps);
   lastSnap = getSelectedSnapshot(allSnaps);
   if (!lastSnap) return;
+  if (isUnavailableSnapshot(lastSnap)) {
+    setEmptyState(true, lastSnap.gaps?.collector || '');
+    return;
+  }
+  setEmptyState(false);
   lastCaps = lastSnap.caps || {};
   updateAll(lastSnap);
   updateTelemetryBanner(lastSnap, true);
@@ -880,6 +1046,17 @@ function essentialsMemoryType(m) {
   const total = fmtGbNumberFromMb(m.total_mb);
   const model = memModelShort(m.mem_model);
   return total ? `${model} (${total} GB)` : memLabel(m.mem_model);
+}
+function formatPciLocation(s) {
+  const raw = String(s.pcie_info || s.bus_id || '').trim();
+  if(!raw) return 'Integrated';
+  const normalized = raw.match(/[0-9a-fA-F]{4,8}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}\.[0-7]/)?.[0];
+  if(!normalized) return raw;
+  const parts = normalized.match(/^(?:[0-9a-fA-F]{4}|[0-9a-fA-F]{8}):([0-9a-fA-F]{2}):([0-9a-fA-F]{2})\.([0-7])$/);
+  if(!parts) return raw;
+  const [, bus, device, fn] = parts;
+  const displayFunction = fn.padStart(2, '0');
+  return `Bus ${bus.toUpperCase()} &bull; Device ${device.toUpperCase()} &bull; Function ${displayFunction} <span class="prop-muted">(${normalized})</span>`;
 }
 function memColor(m) {
   return m==='dedicated'?'#378ADD': m==='unified'?'#1D9E75':'#7F77DD';
@@ -1582,7 +1759,7 @@ function deviceInfoRows(s) {
     ['Vendor',      (s.vendor||'--').replace('_',' ').toUpperCase()],
     ['Driver',      s.driver_version||'--'],
     ['Compute API', s.compute_api||'--'],
-    ['PCIe / bus',  s.pcie_info || (s.bus_id ? s.bus_id : 'Integrated')],
+    ['PCIe / bus',  formatPciLocation(s)],
     ['Temp max',    s.temp_max_c ? s.temp_max_c + '&deg;C' : '--'],
     ['Power limit', s.power_limit_w ? Math.round(s.power_limit_w) + ' W' : '--'],
   ];
@@ -1600,7 +1777,7 @@ function deviceInfoRows(s) {
     ['Resource group', AZURE_ESSENTIALS.resourceGroup],
     ['Location', AZURE_ESSENTIALS.location],
     ['GPU', s.device_name||'--'],
-    ['PCI location', s.pcie_info || (s.bus_id ? s.bus_id : 'Integrated')],
+    ['PCI location', formatPciLocation(s)],
   ];
   const right = [
     ['Memory type', essentialsMemoryType(m)],
