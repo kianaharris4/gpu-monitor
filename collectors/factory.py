@@ -47,10 +47,10 @@ def get_collector():
             print(f"[INFO] Using collector: {collector.__class__.__name__}")
             return collector
 
-    if _is_jetson_platform() and not _command_exists("tegrastats"):
+    if _is_jetson_platform() and not (_command_exists("tegrastats") or _command_exists("nvidia-smi")):
         reason = (
-            "NVIDIA Jetson platform detected, but tegrastats is not available. "
-            "Install or enable NVIDIA Jetson telemetry tools so GPU utilization and unified memory can be collected."
+            "NVIDIA Jetson platform detected, but neither tegrastats nor nvidia-smi is available. "
+            "Install or enable NVIDIA Jetson telemetry tools so GPU telemetry can be collected."
         )
         print(f"[WARN] {reason}")
         return NullCollector(reason, device_name="NVIDIA Jetson telemetry unavailable", vendor="nvidia")
