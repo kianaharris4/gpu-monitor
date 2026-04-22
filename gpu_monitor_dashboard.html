@@ -123,14 +123,13 @@ body{font-family:'Segoe UI',SegoeUI,system-ui,-apple-system,sans-serif;backgroun
 .live-metric-sub{display:none}
 .memory-donut-wrap{display:flex;flex-direction:column;gap:12px;padding-bottom:0}
 .memory-donut-canvas{height:224px}
-.memory-donut-legend{display:flex;gap:28px;flex-wrap:nowrap;padding-left:10px}
-.memory-donut-item{display:flex;align-items:flex-start;gap:7px;min-width:78px}
-.memory-donut-swatch{width:4px;height:32px;border-radius:0}
-.memory-donut-label{font-size:13px;color:var(--text);font-weight:600;line-height:1.1}
-.memory-donut-value{font-size:20px;font-weight:400;line-height:1.1;margin-top:4px;color:var(--text)}
-.memory-donut-value-row{display:flex;align-items:baseline;gap:8px;margin-top:4px;white-space:nowrap}
-.memory-donut-value-row .memory-donut-value{margin-top:0}
-.memory-donut-detail{font-size:12px;color:var(--text2);line-height:1.2;white-space:nowrap}
+.metric-summary{display:flex;gap:28px;flex-wrap:nowrap;padding-left:10px}
+.metric-summary-item{display:flex;align-items:stretch;gap:10px;min-width:78px}
+.metric-summary-swatch{width:4px;height:auto;min-height:74px;border-radius:0}
+.metric-summary-copy{display:flex;flex-direction:column;align-items:flex-start}
+.metric-summary-label{font-size:13px;color:var(--text);font-weight:400;line-height:1.15}
+.metric-summary-detail{font-size:12px;color:var(--text2);line-height:1.2;margin-top:2px;white-space:nowrap;min-height:14px}
+.metric-summary-value{font-size:22px;font-weight:400;line-height:1;margin-top:8px;color:var(--text)}
 .card{background:var(--page);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow)}
 .metric{background:var(--page);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;min-height:92px;box-shadow:var(--shadow)}
 .ml{font-size:12px;color:var(--text2);margin-bottom:8px;font-weight:600}
@@ -230,32 +229,30 @@ select{font-size:12px;padding:5px 28px 5px 10px;border-radius:16px;border:1px so
 .azure-panel-b{padding:0}
 .usage-wrap{display:flex;flex-direction:column;gap:12px}
 .usage-canvas{height:224px}
-.usage-legend{display:flex;gap:24px;flex-wrap:wrap;padding-top:2px;padding-left:10px}
-.usage-legend-item{display:flex;align-items:flex-start;gap:7px}
-.usage-legend-swatch{width:4px;height:32px;border-radius:0}
-.usage-legend-label{font-size:13px;color:var(--text);font-weight:600}
-.usage-legend-value{font-size:20px;font-weight:400;line-height:1.1;margin-top:4px;color:var(--text)}
-.azure-proc-table{width:100%;border-collapse:collapse;font-size:12px}
-.azure-proc-table th,.azure-proc-table td{padding:6px 10px;border-bottom:1px solid #edebe9;text-align:left;vertical-align:middle;height:25px}
-.azure-proc-table th{font-size:13px;color:var(--text);font-weight:600}
-.azure-proc-table td{font-size:13px}
-.azure-proc-table td:last-child,.azure-proc-table th:last-child{text-align:right}
+.usage-legend{display:flex;gap:28px;flex-wrap:nowrap;padding-top:2px;padding-left:10px}
+.azure-proc-table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
+.azure-proc-table th,.azure-proc-table td{padding:9px 10px 9px 0;border-bottom:1px solid #edebe9;text-align:left;vertical-align:middle;min-height:34px}
+.azure-proc-table th{font-size:13px;color:var(--text2);font-weight:600}
+.azure-proc-table td{font-size:13px;color:var(--text)}
 .azure-proc-table .num{text-align:right;font-variant-numeric:tabular-nums}
-.azure-proc-table th:nth-child(1),.azure-proc-table td:nth-child(1){width:22%}
-.azure-proc-table th:nth-child(2),.azure-proc-table td:nth-child(2){width:20%}
-.azure-proc-table th:nth-child(3),.azure-proc-table td:nth-child(3){width:14%}
-.azure-proc-table th:nth-child(4),.azure-proc-table td:nth-child(4){width:22%}
-.azure-proc-table th:nth-child(5),.azure-proc-table td:nth-child(5){width:22%}
+.azure-proc-table th:nth-child(1),.azure-proc-table td:nth-child(1){width:24%}
+.azure-proc-table th:nth-child(2),.azure-proc-table td:nth-child(2){width:21%}
+.azure-proc-table th:nth-child(3),.azure-proc-table td:nth-child(3){width:15%}
+.azure-proc-table th:nth-child(4),.azure-proc-table td:nth-child(4){width:20%}
+.azure-proc-table th:nth-child(5),.azure-proc-table td:nth-child(5){width:20%}
 .proc-spark{width:72px;height:18px;display:block}
+.proc-name-cell{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.proc-trend-cell{display:flex;align-items:center;gap:8px;min-height:18px}
+.proc-trend-value{font-size:13px;color:var(--text2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.proc-na{color:var(--text3)}
 .proc-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0 0;font-size:11px;color:var(--text2);border-top:1px solid #edebe9}
 .pager{display:flex;align-items:center;gap:14px}
 .pager-btn{color:var(--azure);font-weight:600}
-.gpu-chooser{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.gpu-choice{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border:1px solid var(--line);border-radius:16px;background:var(--page2);cursor:pointer;font:inherit;font-size:12px;color:var(--text2);transition:border-color .12s ease, background .12s ease, color .12s ease}
-.gpu-choice:hover{border-color:#c7e0f4;background:var(--azure-soft2);color:var(--text)}
-.gpu-choice.active{border-color:var(--azure);background:var(--azure-soft);color:#004578;font-weight:600}
-.gpu-choice-title{white-space:nowrap}
-.gpu-choice-check{display:none}
+.gpu-select-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.gpu-select-wrap{position:relative;display:inline-flex;align-items:center}
+.gpu-select-wrap::after{content:"";position:absolute;right:12px;top:50%;width:7px;height:7px;border-right:1.5px solid #605e5c;border-bottom:1.5px solid #605e5c;transform:translateY(-70%) rotate(45deg);pointer-events:none}
+.gpu-select{min-width:248px;height:32px;padding:5px 34px 5px 12px;border-radius:2px;border:1px solid #c8c6c4;background:#fff;font-size:13px;color:var(--text);appearance:none;-webkit-appearance:none;-moz-appearance:none}
+.gpu-select:focus{outline:1px solid #0078d4;outline-offset:1px}
 .empty-state{display:none;min-height:520px;align-items:center;justify-content:center;text-align:center;padding:56px 24px 72px;color:var(--text)}
 .portal-body.empty-mode #empty-state{display:flex}
 .portal-body.empty-mode #overview-azure-shell,.portal-body.empty-mode .page-tabs,.portal-body.empty-mode .pane{display:none!important}
@@ -475,11 +472,12 @@ canvas{image-rendering:auto}
 
   <div id="overview-azure-shell">
     <div class="flat-section">
-      <div class="flat-inline-title" style="margin-bottom:10px">Select GPU</div>
-      <div class="gpu-chooser" id="gpu-picker-cards">
-        <button type="button" class="gpu-choice active">
-          <span class="gpu-choice-title">Detecting GPU...</span>
-        </button>
+      <div class="gpu-select-bar">
+        <div class="gpu-select-wrap">
+          <select id="gpu-picker-select" class="gpu-select" onchange="setGpuSelection(this.value)">
+            <option value="">Detecting GPU...</option>
+          </select>
+        </div>
       </div>
     </div>
 
@@ -493,7 +491,7 @@ canvas{image-rendering:auto}
 
     <div class="flat-section">
       <div class="flat-section-head">
-        <div class="flat-section-title">Essentials</div>
+        <div class="flat-section-title">Properties</div>
         <div class="flat-section-links">
           <span class="pager-btn">View Cost</span>
           <span class="pager-btn">JSON View</span>
@@ -533,12 +531,13 @@ canvas{image-rendering:auto}
         <div class="azure-panel-b">
           <div class="usage-wrap">
             <div class="usage-canvas compact"><canvas id="ov-usage-chart"></canvas></div>
-            <div class="usage-legend">
-              <div class="usage-legend-item">
-                <span class="usage-legend-swatch" style="background:#0078D4"></span>
-                <div>
-                  <div class="usage-legend-label">GPU utilization</div>
-                  <div class="usage-legend-value" id="ov-util-legend">--</div>
+            <div class="usage-legend metric-summary">
+              <div class="metric-summary-item">
+                <span class="metric-summary-swatch" style="background:#0078D4"></span>
+                <div class="metric-summary-copy">
+                  <div class="metric-summary-label" id="ov-util-name">--</div>
+                  <div class="metric-summary-detail" id="ov-util-detail"></div>
+                  <div class="metric-summary-value" id="ov-util-legend">--</div>
                 </div>
               </div>
             </div>
@@ -550,15 +549,13 @@ canvas{image-rendering:auto}
         <div class="azure-panel-b">
           <div class="memory-donut-wrap">
             <div class="memory-donut-canvas"><canvas id="ov-memory-donut"></canvas></div>
-            <div class="memory-donut-legend">
-              <div class="memory-donut-item">
-                <span class="memory-donut-swatch" style="background:#0078D4"></span>
-                <div>
-                  <div class="memory-donut-label">Memory used</div>
-                  <div class="memory-donut-value-row">
-                    <span class="memory-donut-value" id="ov-mem-active">--</span>
-                    <span class="memory-donut-detail" id="ov-mem-detail">--</span>
-                  </div>
+            <div class="memory-donut-legend metric-summary">
+              <div class="metric-summary-item">
+                <span class="metric-summary-swatch" style="background:#0078D4"></span>
+                <div class="metric-summary-copy">
+                  <div class="metric-summary-label" id="ov-mem-name">--</div>
+                  <div class="metric-summary-detail" id="ov-mem-detail">--</div>
+                  <div class="metric-summary-value" id="ov-mem-active">--</div>
                 </div>
               </div>
             </div>
@@ -617,7 +614,7 @@ canvas{image-rendering:auto}
     </div>
 
   <div style="display:none">
-  <div class="section-caption">Essentials</div>
+  <div class="section-caption">Properties</div>
   <div class="g2 portal-section">
     <div class="card" style="padding:14px 16px">
       <div class="portal-card-title" style="margin-bottom:10px">Hardware</div>
@@ -934,6 +931,14 @@ function na(v, suf='', dec=0) {
   if (v === null || v === undefined) return '<span class="na">N/A</span>';
   return (typeof v === 'number' ? (dec > 0 ? v.toFixed(dec) : Math.round(v)) : v) + suf;
 }
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
 function setText(id, html) { const e=document.getElementById(id); if(e) e.innerHTML=html; }
 function setBar(id, v, max) { const e=document.getElementById(id); if(e) e.style.width = (v&&max ? Math.min(100,Math.round(v/max*100)) : 0)+'%'; }
 function safeCall(fn, label) {
@@ -990,10 +995,11 @@ function gpuLabel(s, fallbackIndex) {
   return s.device_name || `GPU ${s.gpu_index !== null && s.gpu_index !== undefined ? s.gpu_index : fallbackIndex}`;
 }
 function updateGpuPicker(snaps) {
-  const chooser = document.getElementById('gpu-picker-cards');
+  const chooser = document.getElementById('gpu-picker-select');
   if (!chooser) return;
   if (!snaps.length) {
-    chooser.innerHTML = '<button type="button" class="gpu-choice active"><span class="gpu-choice-title">No GPUs detected</span></button>';
+    chooser.innerHTML = '<option value="">No GPUs detected</option>';
+    chooser.value = '';
     return;
   }
   if (selectedGpuKey === null || !snaps.some((s, i) => gpuKey(s, i) === selectedGpuKey)) {
@@ -1001,11 +1007,10 @@ function updateGpuPicker(snaps) {
   }
   chooser.innerHTML = snaps.map((s, i) => {
     const key = gpuKey(s, i);
-    const active = key === selectedGpuKey ? ' active' : '';
-    return `<button type="button" class="gpu-choice${active}" onclick="setGpuSelection('${key.replace(/'/g, "\'")}')">
-      <span class="gpu-choice-title">${gpuLabel(s, i)}</span>
-    </button>`;
+    const selected = key === selectedGpuKey ? ' selected' : '';
+    return `<option value="${escapeHtml(key)}"${selected}>${escapeHtml(gpuLabel(s, i))}</option>`;
   }).join('');
+  chooser.value = selectedGpuKey;
 }
 function getSelectedSnapshot(snaps) {
   if (!snaps.length) return null;
@@ -1269,7 +1274,7 @@ function formatOverviewMemoryHover(value) {
   const total = lastSnap?.memory?.total_mb || 0;
   if(!total) return {pct:`${pct}%`, detail:'<span class="na">N/A</span>'};
   const usedMb = total * (Number(value) / 100);
-  return {pct:`${pct}%`, detail:`${fmtGbNumberFromMb(usedMb)}/${fmtGbNumberFromMb(total)} GB`};
+  return {pct:`${pct}%`, detail:`${fmtGbNumberFromMb(usedMb)}/${fmtGbNumberFromMb(total)} used`};
 }
 
 function formatOverviewMemoryTooltip(value) {
@@ -1517,12 +1522,16 @@ function updateOverviewMetrics(s) {
   const m = s.memory || {};
   const total = m.total_mb || 0, used = m.used_mb || 0, free = m.free_mb != null ? m.free_mb : Math.max(0,total-used);
   const usedPct = total ? Math.round((used/Math.max(total,1))*100) : 0;
+  const gpuName = escapeHtml(gpuLabel(s, s.gpu_index ?? 0));
+  setText('ov-util-name', gpuName);
+  setText('ov-util-detail', '&nbsp;');
+  setText('ov-mem-name', escapeHtml(gpuLabel(s, s.gpu_index ?? 0)));
   setText('ov-total-mem', total ? `${mbToGb(total).toFixed(1)} GB` : '<span class="na">N/A</span>');
   setText('ov-current-mem', total ? `${mbToGb(used).toFixed(1)}/${mbToGb(total).toFixed(1)} GB` : '<span class="na">N/A</span>');
   setText('ov-free-mem', total ? `${mbToGb(free).toFixed(1)} GB` : '<span class="na">N/A</span>');
   setText('ov-util-legend', s.util_pct!=null ? `${Math.round(s.util_pct)}%` : '<span class="na">N/A</span>');
   setText('ov-mem-active', total ? `${usedPct}%` : '<span class="na">N/A</span>');
-  setText('ov-mem-detail', total ? `${fmtGbNumberFromMb(used)}/${fmtGbNumberFromMb(total)} GB` : '<span class="na">N/A</span>');
+  setText('ov-mem-detail', total ? `${fmtGbNumberFromMb(used)}/${fmtGbNumberFromMb(total)} used` : '<span class="na">N/A</span>');
   updateThermalPowerCards(s);
   updateOverviewUsageChart();
   updateOverviewMemoryChart();
@@ -1536,13 +1545,15 @@ function renderOverviewProcTable() {
     const k = String(p.pid);
     const ph = procHist[k];
     const col = PROC_COLORS[idx%PROC_COLORS.length];
-    const trend = ph ? sparklineSvg(ph.gpu.slice(-windowPoints(OV_WIN)), col) : '<span class="na">building...</span>';
+    const gpuPct = Number.isFinite(p.gpu_pct) ? `${(Math.round(p.gpu_pct * 10) / 10).toFixed(1)}%` : '<span class="na">N/A</span>';
+    const trend = ph
+      ? `<div class="proc-trend-cell">${sparklineSvg(ph.gpu.slice(-windowPoints(OV_WIN)), col)}<span class="proc-trend-value">${gpuPct}</span></div>`
+      : '<span class="proc-na">building...</span>';
     const gpuMem = p.mem_mb!=null ? `${mbToGb(p.mem_mb).toFixed(1)} GB` : '<span class="na">N/A</span>';
     const hostMem = memModel==='dedicated' ? '<span class="na">N/A</span>' : gpuMem;
-    const name = (p.name || 'Unknown').length > 22 ? `${(p.name || 'Unknown').slice(0,22)}...` : (p.name || 'Unknown');
-    const gpuPct = Number.isFinite(p.gpu_pct) ? `${(Math.round(p.gpu_pct * 10) / 10).toFixed(1)}%` : '<span class="na">N/A</span>';
+    const name = escapeHtml(p.name || 'Unknown');
     return `<tr>
-      <td>${name}</td>
+      <td class="proc-name-cell" title="${name}">${name}</td>
       <td>${trend}</td>
       <td class="num">${gpuPct}</td>
       <td class="num">${gpuMem}</td>
