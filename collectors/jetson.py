@@ -118,11 +118,13 @@ class JetsonCollector:
                 total_mb=total,
             )
 
-        gpu = re.search(r"GR3D_FREQ\s+(\d+)%@(?:\[(\d+)(?:,\d+)*\]|(\d+))", out, re.IGNORECASE)
-        if gpu:
-            snap.util_pct = float(gpu.group(1))
-            clock_val = gpu.group(2) or gpu.group(3)
-            snap.clock_mhz = _safe_float(clock_val)
+        util_pct, clock_mhz = self._parse_tegrastats_gpu(out)
+        if util_pct is not None:
+            snap.util_pct = util_pct
+            snap.sources["utilization"] = "tegrastats"
+            snap.engine.graphics_3d = util_pct
+        if clock_mhz is not None:
+            snap.clock_mhz = clock_mhz
 
         temp = re.search(r"(?:\bGPU|\bGPU0)@(\d+(?:\.\d+)?)C", out, re.IGNORECASE)
         if temp and snap.temp_c is None:
@@ -145,3 +147,25 @@ class JetsonCollector:
                 if snap.power_limit_w is not None:
                     snap.power_limit_w /= 1000.0
             break
+
+    def _parse_tegrastats_gpu(self, text):
+        patterns = [
+            r"\bGR3D_FREQ\s+(\d+(?:\.\d+)?)%\s*@\s*\[(\d+(?:,\d+)*)\]",
+            r"\bGR3D_FREQ\s+(\d+(?:\.\d+)?)%\s*@\s*(\d+)",
+            r"\bGR3D_FREQ\s+(\d+(?:\.\d+)?)%",
+            r"\bGR3D(?:_FREQ)?\s+(\d+(?:\.\d+)?)%\s*@\s*\[(\d+(?:,\d+)*)\]",
+            r"\bGR3D(?:_FREQ)?\s+(\d+(?:\.\d+)?)%\s*@\s*(\d+)",
+            r"\bGR3D(?:_FREQ)?\s+(\d+(?:\.\d+)?)%",
+        ]
+        for pattern in patterns:
+            match = re.search(pattern, text, re.IGNORECASE)
+            if not match:
+                continue
+            util_pct = _safe_float(match.group(1))
+            clock_group = match.group(2) if match.lastindex and match.lastindex >= 2 else None
+            clock_mhz = None
+            if clock_group:
+                first_clock = str(clock_group).split(",")[0].strip()
+                clock_mhz = _safe_float(first_clock)
+            return util_pct, clock_mhz
+        return None, None

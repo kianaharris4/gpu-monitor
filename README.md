@@ -15,7 +15,7 @@ Metric coverage varies by platform and driver. When a vendor API does not expose
 
 For the backend design and why each telemetry command is used, see [BACKEND_TELEMETRY_CONCEPTS.md](BACKEND_TELEMETRY_CONCEPTS.md).
 
-For details on what each **Essentials** value can mean, see [KEY_PROPERTIES_REFERENCE.md](KEY_PROPERTIES_REFERENCE.md).
+For details on what each **Properties** value can mean, see [KEY_PROPERTIES_REFERENCE.md](KEY_PROPERTIES_REFERENCE.md).
 
 ## Quick start
 
@@ -195,7 +195,7 @@ After that, users can download the wheel from the GitHub Release page and instal
 ## Known limitations
 
 - Linux Intel memory is reported as shared system RAM/UMA usage when dedicated VRAM is not exposed
-- Jetson support depends on the exact `tegrastats` output format on the target device
+- Jetson support depends on the exact `tegrastats` output format on the target device, although the parser now accepts several common `GR3D` and `GR3D_FREQ` variants
 - Per-process GPU attribution is not available on every vendor or OS path
 
 For platform-specific telemetry errors and suggested fixes, see [TELEMETRY_TROUBLESHOOTING.md](TELEMETRY_TROUBLESHOOTING.md).

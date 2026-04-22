@@ -28,7 +28,7 @@ The goal is not to force every device through one command. GPU telemetry is expo
 | Command or source | Why the backend uses it | What it can provide | Common limitations |
 | --- | --- | --- | --- |
 | `nvidia-smi` | It is the standard CLI over NVIDIA Management Library for discrete NVIDIA GPUs. | GPU name, utilization, memory, temperature, power, clocks, and process memory on supported drivers. | Usually does not cover Jetson SoC GPUs; requires NVIDIA driver utilities and a loaded driver. |
-| `tegrastats` | It is the Jetson-native telemetry tool included with JetPack/L4T environments. | Jetson GPU utilization such as `GR3D_FREQ`, unified RAM usage, temperature/power strings when exposed. | Output varies by Jetson model and JetPack version; not all fields are present on every board. |
+| `tegrastats` | It is the Jetson-native telemetry tool included with JetPack/L4T environments. | Jetson GPU utilization such as `GR3D` or `GR3D_FREQ`, unified RAM usage, temperature/power strings when exposed. | Output varies by Jetson model and JetPack version; not all fields are present on every board, and parsing may need to accommodate multiple `GR3D` output variants. |
 | `intel_gpu_top` | It is the Intel iGPU telemetry tool from `intel-gpu-tools`, and it exposes engine busy data that generic Linux tools often do not. | Aggregate/engine utilization, per-client/process activity when available, and engine-specific busy percentages. | Often requires render/video group access, `cap_perfmon`, or relaxed `perf_event_paranoid` settings. Memory is usually shared system memory rather than dedicated VRAM. |
 | `dxdiag` | It is a built-in Windows diagnostic command that reliably reports adapter names, vendor metadata, driver information, and display devices. | GPU name, driver version, adapter metadata. | It is metadata-oriented, not a rich live telemetry source. |
 | Windows GPU performance counters | They are the native Windows source for live GPU engine activity. | Engine utilization and process-linked GPU activity when counters map cleanly. | Counter names and adapter mappings can be inconsistent across vendors, drivers, and Windows versions. |
@@ -72,6 +72,6 @@ Collectors should not crash the dashboard when a metric is unavailable. Instead,
 | `gaps` | Explains why a metric is missing or partial. |
 | `caps` | Describes known capabilities for the selected device/source. |
 
-The frontend uses those fields to show informational messages such as missing drivers, missing permissions, unsupported process attribution, or telemetry fields that the vendor source does not expose.
+The frontend uses those fields to show informational messages such as missing drivers, missing permissions, unsupported process attribution, or telemetry fields that the vendor source does not expose. In the current Azure-style UI, these messages appear in the telemetry banner below the GPU selector and above the Properties section.
 
 For a concrete list of user-facing messages and fixes, see [TELEMETRY_TROUBLESHOOTING.md](TELEMETRY_TROUBLESHOOTING.md).

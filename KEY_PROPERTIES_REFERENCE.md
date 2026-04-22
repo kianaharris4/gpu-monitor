@@ -1,8 +1,8 @@
-# Essentials Reference
+# Properties Reference
 
-The **Essentials** section summarizes the selected GPU snapshot returned by the active collector. Values can vary by platform, driver, permissions, and vendor telemetry support. When a collector cannot provide a field, the dashboard usually displays `--`, `N/A`, or an informational telemetry banner.
+The **Properties** section summarizes the selected GPU snapshot returned by the active collector. Values can vary by platform, driver, permissions, and vendor telemetry support. When a collector cannot provide a field, the dashboard usually displays `--`, `N/A`, or an informational telemetry banner.
 
-## Overview Essentials
+## Overview Properties
 
 | Key property | Backing field or expression | Possible values | What it means |
 | --- | --- | --- | --- |
@@ -40,7 +40,7 @@ The **Essentials** section summarizes the selected GPU snapshot returned by the 
 | Collector path | Key property behavior |
 | --- | --- |
 | Windows collector | GPU names and driver versions come from `dxdiag`. NVIDIA live telemetry may be enriched with `nvidia-smi`. Integrated GPUs often show `Integrated` for PCI location and `Shared (System Memory)` for memory type. |
-| NVIDIA collector | GPU name, utilization, temperature, power, and memory come from `nvidia-smi`. Per-process details are not currently collected from this path. |
-| Jetson collector | Device name is generally `NVIDIA Jetson`; memory is typically `Unified (SoC Memory)` from `tegrastats`. |
+| NVIDIA collector | GPU name, utilization, temperature, power, and memory come from `nvidia-smi`. Per-process rows are collected when `nvidia-smi pmon`, the NVIDIA process table, or compute-app queries expose them. |
+| Jetson collector | Device name is generally `NVIDIA Jetson`; memory is typically `Unified (SoC Memory)` from `tegrastats`. Utilization is primarily taken from Jetson `tegrastats` `GR3D` or `GR3D_FREQ` fields, with Jetson-compatible `nvidia-smi` metadata used when available. |
 | Intel Linux collector | GPU name is derived from `lspci` or `/sys/class/drm` when available. Memory is `Shared (System Memory)`. If device metadata is unavailable, the dashboard may use a generic Intel GPU name. |
 | Null/fallback collector | Uses placeholder names such as `NVIDIA telemetry unavailable` or `No supported GPU detected` and emits telemetry availability messages explaining what is missing. |
