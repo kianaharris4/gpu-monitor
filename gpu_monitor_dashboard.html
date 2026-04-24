@@ -414,12 +414,12 @@ canvas{image-rendering:auto}
     </div>
   </nav>
 <div class="g6 portal-section" style="display:none">
-  <div class="metric"><div class="ml">GPU util</div><div class="mv" id="k-util" style="color:#378ADD">—</div><div class="bar-o"><div class="bar-i" id="kb-util" style="background:#378ADD;width:0%"></div></div><div class="ms">shader active</div></div>
-  <div class="metric"><div class="ml">Temperature</div><div class="mv" id="k-temp" style="color:#EF9F27">—</div><div class="bar-o"><div class="bar-i" id="kb-temp" style="background:#EF9F27;width:0%"></div></div><div class="ms" id="k-temp-s">—</div></div>
-  <div class="metric"><div class="ml">Power draw</div><div class="mv" id="k-pwr" style="color:#D85A30">—</div><div class="bar-o"><div class="bar-i" id="kb-pwr" style="background:#D85A30;width:0%"></div></div><div class="ms" id="k-pwr-s">—</div></div>
-  <div class="metric"><div class="ml" id="k-mem-l">GPU memory</div><div class="mv" id="k-mem" style="color:#1D9E75">—</div><div class="bar-o"><div class="bar-i" id="kb-mem" style="background:#1D9E75;width:0%"></div></div><div class="ms" id="k-mem-s">—</div></div>
-  <div class="metric"><div class="ml">GPU clock</div><div class="mv" id="k-clk" style="color:#7F77DD">—</div><div class="bar-o"><div class="bar-i" id="kb-clk" style="background:#7F77DD;width:0%"></div></div><div class="ms" id="k-clk-s">—</div></div>
-  <div class="metric"><div class="ml">Mem clock</div><div class="mv" id="k-mclk" style="color:#D4537E">—</div><div class="bar-o"><div class="bar-i" id="kb-mclk" style="background:#D4537E;width:0%"></div></div><div class="ms" id="k-mclk-s">—</div></div>
+  <div class="metric"><div class="ml">GPU util</div><div class="mv" id="k-util" style="color:#378ADD">�</div><div class="bar-o"><div class="bar-i" id="kb-util" style="background:#378ADD;width:0%"></div></div><div class="ms">shader active</div></div>
+  <div class="metric"><div class="ml">Temperature</div><div class="mv" id="k-temp" style="color:#EF9F27">�</div><div class="bar-o"><div class="bar-i" id="kb-temp" style="background:#EF9F27;width:0%"></div></div><div class="ms" id="k-temp-s">�</div></div>
+  <div class="metric"><div class="ml">Power draw</div><div class="mv" id="k-pwr" style="color:#D85A30">�</div><div class="bar-o"><div class="bar-i" id="kb-pwr" style="background:#D85A30;width:0%"></div></div><div class="ms" id="k-pwr-s">�</div></div>
+  <div class="metric"><div class="ml" id="k-mem-l">GPU memory</div><div class="mv" id="k-mem" style="color:#1D9E75">�</div><div class="bar-o"><div class="bar-i" id="kb-mem" style="background:#1D9E75;width:0%"></div></div><div class="ms" id="k-mem-s">�</div></div>
+  <div class="metric"><div class="ml">GPU clock</div><div class="mv" id="k-clk" style="color:#7F77DD">�</div><div class="bar-o"><div class="bar-i" id="kb-clk" style="background:#7F77DD;width:0%"></div></div><div class="ms" id="k-clk-s">�</div></div>
+  <div class="metric"><div class="ml">Mem clock</div><div class="mv" id="k-mclk" style="color:#D4537E">�</div><div class="bar-o"><div class="bar-i" id="kb-mclk" style="background:#D4537E;width:0%"></div></div><div class="ms" id="k-mclk-s">�</div></div>
 </div>
 </aside>
 <main class="portal-main">
@@ -508,10 +508,9 @@ canvas{image-rendering:auto}
 
 <div class="page-tabs">
   <button class="page-tab active" onclick="switchTab('overview',this)">Overview</button>
-  <button class="page-tab" onclick="switchTab('memory',this)">Memory</button>
 </div>
 
-<!-- ════════ OVERVIEW ════════ -->
+<!-- -------- OVERVIEW -------- -->
 <div id="tab-overview" class="pane active">
 
     <div class="portal-toolbar" style="padding-top:2px">
@@ -630,22 +629,22 @@ canvas{image-rendering:auto}
     <div class="portal-card-head" style="display:flex;align-items:center;justify-content:space-between">
       <div>
         <div class="portal-card-title">Metrics over time</div>
-        <div style="font-size:11px;color:var(--text3);margin-top:2px">Shared x-axis — hover any track to compare values at the same moment</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">Shared x-axis � hover any track to compare values at the same moment</div>
       </div>
       <select id="ov-win-legacy" onchange="setOvWin(this.value)">
         <option value="10">10 s</option><option value="60" selected>60 s</option><option value="120">2 min</option><option value="300">5 min</option>
       </select>
     </div>
     <div style="padding:8px 16px 16px">
-      <div class="track"><div class="tl"><div class="tl-name">Utilization</div><div class="tl-val" id="tl-util" style="color:#378ADD">—</div><div class="tl-unit">0–100%</div></div><div class="tc"><canvas id="tc-util"></canvas></div></div>
+      <div class="track"><div class="tl"><div class="tl-name">Utilization</div><div class="tl-val" id="tl-util" style="color:#378ADD">�</div><div class="tl-unit">0�100%</div></div><div class="tc"><canvas id="tc-util"></canvas></div></div>
       <div class="tdiv"></div>
-      <div class="track"><div class="tl"><div class="tl-name">Temperature</div><div class="tl-val" id="tl-temp" style="color:#EF9F27">—</div><div class="tl-unit" id="tl-temp-u">°C</div></div><div class="tc"><canvas id="tc-temp"></canvas></div></div>
+      <div class="track"><div class="tl"><div class="tl-name">Temperature</div><div class="tl-val" id="tl-temp" style="color:#EF9F27">�</div><div class="tl-unit" id="tl-temp-u">�C</div></div><div class="tc"><canvas id="tc-temp"></canvas></div></div>
       <div class="tdiv"></div>
-      <div class="track"><div class="tl"><div class="tl-name">Power draw</div><div class="tl-val" id="tl-pwr" style="color:#D85A30">—</div><div class="tl-unit" id="tl-pwr-u">W</div></div><div class="tc"><canvas id="tc-pwr"></canvas></div></div>
+      <div class="track"><div class="tl"><div class="tl-name">Power draw</div><div class="tl-val" id="tl-pwr" style="color:#D85A30">�</div><div class="tl-unit" id="tl-pwr-u">W</div></div><div class="tc"><canvas id="tc-pwr"></canvas></div></div>
       <div class="tdiv"></div>
-      <div class="track"><div class="tl"><div class="tl-name">Memory used</div><div class="tl-val" id="tl-mem" style="color:#1D9E75">—</div><div class="tl-unit">0–100%</div></div><div class="tc"><canvas id="tc-mem"></canvas></div></div>
+      <div class="track"><div class="tl"><div class="tl-name">Memory used</div><div class="tl-val" id="tl-mem" style="color:#1D9E75">�</div><div class="tl-unit">0�100%</div></div><div class="tc"><canvas id="tc-mem"></canvas></div></div>
       <div class="tdiv"></div>
-      <div class="track"><div class="tl"><div class="tl-name">GPU clock</div><div class="tl-val" id="tl-clk" style="color:#7F77DD">—</div><div class="tl-unit" id="tl-clk-u">GHz</div></div><div class="tc"><canvas id="tc-clk"></canvas></div></div>
+      <div class="track"><div class="tl"><div class="tl-name">GPU clock</div><div class="tl-val" id="tl-clk" style="color:#7F77DD">�</div><div class="tl-unit" id="tl-clk-u">GHz</div></div><div class="tc"><canvas id="tc-clk"></canvas></div></div>
     </div>
   </div>
 
@@ -661,23 +660,23 @@ canvas{image-rendering:auto}
           <svg width="86" height="86" viewBox="0 0 86 86">
             <circle cx="43" cy="43" r="33" fill="none" stroke="var(--bdr2)" stroke-width="8"/>
             <circle cx="43" cy="43" r="33" fill="none" stroke="#EF9F27" stroke-width="8" stroke-linecap="round" stroke-dasharray="207" id="arc-temp" transform="rotate(-90 43 43)" style="transition:stroke-dashoffset .8s,stroke .4s"/>
-            <text x="43" y="39" text-anchor="middle" font-size="15" font-weight="600" fill="var(--text)" id="arc-temp-v">—</text>
-            <text x="43" y="53" text-anchor="middle" font-size="10" fill="var(--text2)">°C</text>
+            <text x="43" y="39" text-anchor="middle" font-size="15" font-weight="600" fill="var(--text)" id="arc-temp-v">�</text>
+            <text x="43" y="53" text-anchor="middle" font-size="10" fill="var(--text2)">�C</text>
           </svg>
           <div style="font-size:11px;color:var(--text3)">Core temp</div>
-          <div style="font-size:11px;color:var(--text2)">Hot spot: <span style="font-weight:600" id="hotspot">—</span></div>
-          <div style="font-size:11px;color:var(--text2)">Fan: <span style="font-weight:600" id="fan-val">—</span></div>
+          <div style="font-size:11px;color:var(--text2)">Hot spot: <span style="font-weight:600" id="hotspot">�</span></div>
+          <div style="font-size:11px;color:var(--text2)">Fan: <span style="font-weight:600" id="fan-val">�</span></div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
           <svg width="86" height="86" viewBox="0 0 86 86">
             <circle cx="43" cy="43" r="33" fill="none" stroke="var(--bdr2)" stroke-width="8"/>
             <circle cx="43" cy="43" r="33" fill="none" stroke="#D85A30" stroke-width="8" stroke-linecap="round" stroke-dasharray="207" id="arc-pwr" transform="rotate(-90 43 43)" style="transition:stroke-dashoffset .8s,stroke .4s"/>
-            <text x="43" y="39" text-anchor="middle" font-size="14" font-weight="600" fill="var(--text)" id="arc-pwr-v">—</text>
+            <text x="43" y="39" text-anchor="middle" font-size="14" font-weight="600" fill="var(--text)" id="arc-pwr-v">�</text>
             <text x="43" y="53" text-anchor="middle" font-size="10" fill="var(--text2)">W</text>
           </svg>
           <div style="font-size:11px;color:var(--text3)">Power draw</div>
-          <div style="font-size:11px;color:var(--text2)">Voltage: <span style="font-weight:600" id="volt">—</span></div>
-          <div style="font-size:11px;color:var(--text2)">Mem clk: <span style="font-weight:600" id="mem-clk-lbl">—</span></div>
+          <div style="font-size:11px;color:var(--text2)">Voltage: <span style="font-weight:600" id="volt">�</span></div>
+          <div style="font-size:11px;color:var(--text2)">Mem clk: <span style="font-weight:600" id="mem-clk-lbl">�</span></div>
         </div>
       </div>
     </div>
@@ -686,15 +685,15 @@ canvas{image-rendering:auto}
   <div class="insight"><span style="font-weight:600">Correlation:</span><span id="ov-insight">Waiting for data...</span></div>
 </div>
 
-<!-- ════════ PROCESSES ════════ -->
-<!-- ════════ MEMORY ════════ -->
+<!-- -------- PROCESSES -------- -->
+<!-- -------- MEMORY -------- -->
 <div id="tab-memory" class="pane">
   <div class="g2" style="margin-top:0;margin-bottom:12px">
     <div class="card" style="padding:14px 16px">
       <div style="font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">GPU-accessible memory</div>
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
-        <span class="chip" id="mem-badge" style="background:rgba(55,138,221,.12);color:#0C447C">—</span>
-        <span style="font-size:11px;color:var(--text2)" id="mem-arch-pill">—</span>
+        <span class="chip" id="mem-badge" style="background:rgba(55,138,221,.12);color:#0C447C">�</span>
+        <span style="font-size:11px;color:var(--text2)" id="mem-arch-pill">�</span>
       </div>
       <div id="mem-static-rows" style="display:flex;flex-direction:column;gap:7px"></div>
     </div>
@@ -711,7 +710,7 @@ canvas{image-rendering:auto}
   </div>
 </div>
 
-<!-- ════════ DEVICE INFO ════════ -->
+<!-- -------- DEVICE INFO -------- -->
 <div id="tab-device" class="pane" style="display:none">
   <div class="g2" style="margin-bottom:12px">
     <div class="card" style="padding:14px 16px">
@@ -775,7 +774,7 @@ canvas{image-rendering:auto}
 </aside>
 
 <script>
-// ─── Constants ────────────────────────────────────────────────────────────────
+// --- Constants ----------------------------------------------------------------
 const PROC_COLORS = ['#0078D4','#50E6FF','#107C10','#8764B8','#FF8C00','#E3008C','#5C2D91','#69797E'];
 const MAXHIST = 300;
 const RESOURCE_NAME = (location.hostname && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1')
@@ -788,14 +787,14 @@ const AZURE_ESSENTIALS = {
   location: 'East US 2',
 };
 
-// ─── State ────────────────────────────────────────────────────────────────────
+// --- State --------------------------------------------------------------------
 let OV_WIN = 60, MEM_WIN = 60;
 let lastSnap = null, lastCaps = {}, allSnaps = [], selectedGpuKey = null;
 let pollTimer = null;
 let sampleIntervalSec = 1;
 let telemetryBannerState = {text:'', visible:false, pendingText:null, pendingCount:0};
 const hist = {util:[],temp:[],pwr:[],mem:[],clk:[]};
-const procHist = {}; // pid_str → {gpu:[], mem:[], name, type}
+const procHist = {}; // pid_str ? {gpu:[], mem:[], name, type}
 
 function isUnavailableSnapshot(s) {
   if (!s) return true;
@@ -845,7 +844,7 @@ document.addEventListener('keydown', event => {
   if(event.key === 'Escape') closeTelemetryHelp();
 });
 
-// ─── WebSocket ────────────────────────────────────────────────────────────────
+// --- WebSocket ----------------------------------------------------------------
 function connect() {
   const proto = location.protocol === 'https:' ? 'wss' : 'ws';
   const ws = new WebSocket(`${proto}://${location.host}/ws`);
@@ -926,7 +925,7 @@ function startPolling() {
   pollTimer = setInterval(pollOnce, 2000);
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// --- Helpers ------------------------------------------------------------------
 function na(v, suf='', dec=0) {
   if (v === null || v === undefined) return '<span class="na">N/A</span>';
   return (typeof v === 'number' ? (dec > 0 ? v.toFixed(dec) : Math.round(v)) : v) + suf;
@@ -985,6 +984,30 @@ function fmtGbNumberFromMb(mb, dec=1) {
   if (gb == null) return null;
   const rounded = gb.toFixed(dec);
   return rounded.replace(/\.0$/, '');
+}
+function formatMemoryAmountFromMb(mb, preferredUnit=null) {
+  if (mb == null || !Number.isFinite(Number(mb))) return null;
+  const valueMb = Number(mb);
+  let unit = preferredUnit;
+  if (!unit) {
+    if (valueMb >= 1024 * 1024) unit = 'TB';
+    else if (valueMb >= 1024) unit = 'GB';
+    else unit = 'MB';
+  }
+  const unitDivisors = { MB: 1, GB: 1024, TB: 1024 * 1024 };
+  const converted = valueMb / (unitDivisors[unit] || 1);
+  const decimals = converted >= 100 ? 0 : 1;
+  const rounded = converted.toFixed(decimals).replace(/\.0$/, '');
+  return { value: rounded, unit };
+}
+function formatMemoryPairFromMb(usedMb, totalMb) {
+  if (usedMb == null || totalMb == null) return null;
+  const maxMb = Math.max(Number(usedMb) || 0, Number(totalMb) || 0);
+  const unit = maxMb >= 1024 * 1024 ? 'TB' : maxMb >= 1024 ? 'GB' : 'MB';
+  const used = formatMemoryAmountFromMb(usedMb, unit);
+  const total = formatMemoryAmountFromMb(totalMb, unit);
+  if (!used || !total) return null;
+  return `${used.value}/${total.value}${used.unit} used`;
 }
 function gpuKey(s, fallbackIndex) {
   if (s.gpu_index !== null && s.gpu_index !== undefined) return String(s.gpu_index);
@@ -1067,12 +1090,12 @@ function memColor(m) {
   return m==='dedicated'?'#378ADD': m==='unified'?'#1D9E75':'#7F77DD';
 }
 function memArch(m) {
-  return m==='dedicated'?'Discrete GPU · physically separate VRAM':
-         m==='unified'  ?'Integrated SoC · unified memory (UMA)':
-                          'Integrated/mobile GPU · shared system memory';
+  return m==='dedicated'?'Discrete GPU � physically separate VRAM':
+         m==='unified'  ?'Integrated SoC � unified memory (UMA)':
+                          'Integrated/mobile GPU � shared system memory';
 }
 
-// ─── Header & KPI ─────────────────────────────────────────────────────────────
+// --- Header & KPI -------------------------------------------------------------
 function updateHeader(s) {
   setText('hdr-title', RESOURCE_NAME);
   setText('hdr-resource-name', `${RESOURCE_NAME} | GPU`);
@@ -1082,10 +1105,10 @@ function updateHeader(s) {
 function updateKPI(s) {
   const m = s.memory;
   setText('k-util', na(s.util_pct,'%')); setBar('kb-util', s.util_pct, 100);
-  setText('k-temp', na(s.temp_c,'°C'));  setBar('kb-temp', s.temp_c, s.temp_max_c||100);
-  setText('k-temp-s', s.temp_max_c ? 'Tj max '+s.temp_max_c+'°C' : '—');
+  setText('k-temp', na(s.temp_c,'&deg;C'));  setBar('kb-temp', s.temp_c, s.temp_max_c||100);
+  setText('k-temp-s', s.temp_max_c ? 'Tj max '+s.temp_max_c+'�C' : '�');
   setText('k-pwr', na(s.power_w,' W',1)); setBar('kb-pwr', s.power_w, s.power_limit_w||s.power_w||1);
-  setText('k-pwr-s', s.power_limit_w ? '/ '+Math.round(s.power_limit_w)+' W TDP' : '—');
+  setText('k-pwr-s', s.power_limit_w ? '/ '+Math.round(s.power_limit_w)+' W TDP' : '�');
   if(m) {
     setText('k-mem-l', memLabel(m.mem_model)+' used');
     setText('k-mem', fmtGbFromMb(m.used_mb)); setBar('kb-mem', m.used_mb, m.total_mb);
@@ -1093,16 +1116,16 @@ function updateKPI(s) {
   }
   const clkGhz = s.clock_mhz ? s.clock_mhz/1000 : null;
   setText('k-clk', na(clkGhz,' GHz',2)); setBar('kb-clk', s.clock_mhz, s.max_clock_mhz||s.clock_mhz||1);
-  setText('k-clk-s', s.max_clock_mhz ? 'max '+(s.max_clock_mhz/1000).toFixed(2)+' GHz' : '—');
+  setText('k-clk-s', s.max_clock_mhz ? 'max '+(s.max_clock_mhz/1000).toFixed(2)+' GHz' : '�');
   const mclkGhz = s.mem_clock_mhz ? s.mem_clock_mhz/1000 : null;
   setText('k-mclk', mclkGhz ? na(mclkGhz,' GHz',2) : '<span class="na">N/A</span>');
   setText('k-mclk-s', lastCaps.mem_clock ? 'memory clock' : 'not available');
 }
 
-// ─── Overview — track charts ──────────────────────────────────────────────────
+// --- Overview � track charts --------------------------------------------------
 const OV_TRACKS = [
   {id:'util',ci:'tc-util',li:'tl-util',col:'#0078D4',min:0,maxD:100,fmt:v=>Math.round(v)+'%',fill:'rgba(0,120,212,.10)',maxKey:null},
-  {id:'temp',ci:'tc-temp',li:'tl-temp',col:'#EF9F27',min:30,maxD:90, fmt:v=>Math.round(v)+'°C',fill:'rgba(239,159,39,.09)',maxKey:'temp_max_c'},
+  {id:'temp',ci:'tc-temp',li:'tl-temp',col:'#EF9F27',min:30,maxD:90, fmt:v=>Math.round(v)+'�C',fill:'rgba(239,159,39,.09)',maxKey:'temp_max_c'},
   {id:'pwr', ci:'tc-pwr', li:'tl-pwr', col:'#D85A30',min:0,maxD:400,fmt:v=>Math.round(v)+' W',fill:'rgba(216,90,48,.09)',maxKey:'power_limit_w'},
   {id:'mem', ci:'tc-mem', li:'tl-mem', col:'#1D9E75',min:0,maxD:100,fmt:v=>Math.round(v)+'%',fill:'rgba(29,158,117,.09)',maxKey:null},
   {id:'clk', ci:'tc-clk', li:'tl-clk', col:'#7F77DD',min:0,maxD:3,  fmt:v=>v.toFixed(2)+' GHz',fill:'rgba(127,119,221,.09)',maxKey:null},
@@ -1274,7 +1297,8 @@ function formatOverviewMemoryHover(value) {
   const total = lastSnap?.memory?.total_mb || 0;
   if(!total) return {pct:`${pct}%`, detail:'<span class="na">N/A</span>'};
   const usedMb = total * (Number(value) / 100);
-  return {pct:`${pct}%`, detail:`${fmtGbNumberFromMb(usedMb)}/${fmtGbNumberFromMb(total)} used`};
+  const detail = formatMemoryPairFromMb(usedMb, total);
+  return {pct:`${pct}%`, detail: detail || '<span class="na">N/A</span>'};
 }
 
 function formatOverviewMemoryTooltip(value) {
@@ -1283,7 +1307,8 @@ function formatOverviewMemoryTooltip(value) {
   const total = lastSnap?.memory?.total_mb || 0;
   if(!total) return `Memory used: ${pct}%`;
   const usedMb = total * (Number(value) / 100);
-  return `Memory used: ${pct}% (${fmtGbNumberFromMb(usedMb)}/${fmtGbNumberFromMb(total)} GB)`;
+  const detail = formatMemoryPairFromMb(usedMb, total);
+  return detail ? `Memory used: ${pct}% (${detail})` : `Memory used: ${pct}%`;
 }
 
 function highlightOverviewLineCharts(sourceChart, nativeEvent) {
@@ -1498,7 +1523,7 @@ function updateThermalPowerCards(s) {
 
   setText('ov-temp-trend', metricSparklineSvg(tempValues, '#0078D4'));
   setText('ov-power-trend', metricSparklineSvg(powerValues, '#0078D4'));
-  setText('ov-temp-current', s.temp_c!=null ? `${Math.round(s.temp_c)}<span style="font-size:12px;font-weight:400">°C</span>` : '<span class="na">N/A</span>');
+  setText('ov-temp-current', s.temp_c!=null ? `${Math.round(s.temp_c)}<span style="font-size:12px;font-weight:400">&deg;C</span>` : '<span class="na">N/A</span>');
   setText('ov-power-current', s.power_w!=null ? `${s.power_w.toFixed(1)} <span style="font-size:12px;font-weight:400">W</span>` : '<span class="na">N/A</span>');
 
   const tempCard = document.getElementById('ov-temp-card');
@@ -1507,7 +1532,7 @@ function updateThermalPowerCards(s) {
   if(powerCard) powerCard.title = `Current reading from latest sample at ${sampleTime}. Trend uses the selected ${formatWindowLabel(OV_WIN)} window.`;
 
   setText('ov-temp-context',
-    s.temp_max_c!=null ? `Limit: ${Math.round(s.temp_max_c)}°C` :
+    s.temp_max_c!=null ? `Limit: ${Math.round(s.temp_max_c)}&deg;C` :
     s.temp_c!=null ? '' :
     'Temperature not reported by this telemetry source'
   );
@@ -1531,7 +1556,7 @@ function updateOverviewMetrics(s) {
   setText('ov-free-mem', total ? `${mbToGb(free).toFixed(1)} GB` : '<span class="na">N/A</span>');
   setText('ov-util-legend', s.util_pct!=null ? `${Math.round(s.util_pct)}%` : '<span class="na">N/A</span>');
   setText('ov-mem-active', total ? `${usedPct}%` : '<span class="na">N/A</span>');
-  setText('ov-mem-detail', total ? `${fmtGbNumberFromMb(used)}/${fmtGbNumberFromMb(total)} used` : '<span class="na">N/A</span>');
+  setText('ov-mem-detail', total ? (formatMemoryPairFromMb(used, total) || '<span class="na">N/A</span>') : '<span class="na">N/A</span>');
   updateThermalPowerCards(s);
   updateOverviewUsageChart();
   updateOverviewMemoryChart();
@@ -1564,7 +1589,7 @@ function renderOverviewProcTable() {
   setText('ov-proc-footer', procs.length ? `1-${procs.length} of ${procs.length}. Display count: Auto` : 'Waiting for per-process GPU data');
 }
 
-// ─── Overview — engine bars ───────────────────────────────────────────────────
+// --- Overview � engine bars ---------------------------------------------------
 function updateEngines(s) {
   const eng = s.engine || {};
   const caps = lastCaps;
@@ -1585,7 +1610,7 @@ function updateEngines(s) {
     </div>`).join('');
 }
 
-// ─── Overview — arcs & insight ────────────────────────────────────────────────
+// --- Overview � arcs & insight ------------------------------------------------
 function updateArcs(s) {
   const da=207, tMax=s.temp_max_c||90, t=s.temp_c, p=s.power_w, pMax=s.power_limit_w||p||1;
   if(t!=null){
@@ -1593,9 +1618,9 @@ function updateArcs(s) {
     const arcT=document.getElementById('arc-temp');
     arcT.setAttribute('stroke-dashoffset',da-(da*tPct));
     arcT.setAttribute('stroke', t>tMax*.85?'#E24B4A': t>tMax*.7?'#EF9F27':'#1D9E75');
-    document.getElementById('arc-temp-v').textContent = Math.round(t)+'°';
+    document.getElementById('arc-temp-v').textContent = Math.round(t)+'\u00B0';
   }
-  setText('hotspot', na(s.hot_spot_c,'°C'));
+  setText('hotspot', na(s.hot_spot_c,'&deg;C'));
   const fanStr = s.fan_rpm ? s.fan_rpm+' RPM' : (s.fan_pct!=null ? Math.round(s.fan_pct)+'%' : null);
   setText('fan-val', fanStr ? fanStr : (lastCaps.fan===false?'<span class="na">Passive</span>':'<span class="na">N/A</span>'));
   if(p!=null){
@@ -1605,7 +1630,7 @@ function updateArcs(s) {
     arcP.setAttribute('stroke', pPct>.9?'#E24B4A': pPct>.7?'#EF9F27':'#D85A30');
     document.getElementById('arc-pwr-v').textContent = Math.round(p);
   }
-  setText('volt', s.voltage_v!=null ? s.voltage_v.toFixed(3)+' V' : (lastCaps.voltage===false?'<span class="na">N/A</span>':'<span class="na">—</span>'));
+  setText('volt', s.voltage_v!=null ? s.voltage_v.toFixed(3)+' V' : (lastCaps.voltage===false?'<span class="na">N/A</span>':'<span class="na">�</span>'));
   setText('mem-clk-lbl', s.mem_clock_mhz!=null ? (s.mem_clock_mhz/1000).toFixed(2)+' GHz' : '<span class="na">N/A</span>');
 }
 
@@ -1615,15 +1640,15 @@ function updateInsight(s) {
   const avgSec = ((t-30)/(tMax-30) + (p?p/(s.power_limit_w||p||1):0))/2*100;
   const delta = Math.abs(u-avgSec);
   let ins = '';
-  if(u>85) ins='High utilization — temperature and power spiking in lockstep. Watch thermals.';
-  else if(u>60&&delta<20) ins='Utilization elevated — temperature and power tracking proportionally.';
-  else if(u<30&&avgSec<40) ins='GPU mostly idle — all metrics low and correlated.';
-  else if(delta>30) ins='Utilization and thermal/power are decoupled — possible throttling.';
-  else ins='Utilization is moderate — temperature and power tracking proportionally.';
+  if(u>85) ins='High utilization � temperature and power spiking in lockstep. Watch thermals.';
+  else if(u>60&&delta<20) ins='Utilization elevated � temperature and power tracking proportionally.';
+  else if(u<30&&avgSec<40) ins='GPU mostly idle � all metrics low and correlated.';
+  else if(delta>30) ins='Utilization and thermal/power are decoupled � possible throttling.';
+  else ins='Utilization is moderate � temperature and power tracking proportionally.';
   document.getElementById('ov-insight').textContent = ins;
 }
 
-// ─── Process chart ────────────────────────────────────────────────────────────
+// --- Process chart ------------------------------------------------------------
 function pushProcHist(s) {
   const live = new Set();
   (s.processes||[]).forEach(p=>{
@@ -1648,7 +1673,7 @@ function handleProcTooltip(ctx) {
     const nm=item.dataset.label;
     return`<div style="display:flex;align-items:center;gap:6px;margin:2px 0">
       <span style="width:8px;height:8px;border-radius:2px;background:${col};flex-shrink:0"></span>
-      <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:130px">${nm.length>18?nm.slice(0,18)+'…':nm}</span>
+      <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:130px">${nm.length>18?nm.slice(0,18)+'�':nm}</span>
       <span style="font-weight:600">${v}${unit}</span></div>`;
   }).join('');
   el.style.display='block';
@@ -1660,36 +1685,36 @@ function renderProcLegend() {
     const col=PROC_COLORS[i%PROC_COLORS.length], active=selectedProc===null||selectedProc===k;
     return`<span style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;opacity:${active?1:.35};font-size:11px;color:var(--text2)" onclick="toggleProc('${k}')">
       <span style="width:10px;height:10px;border-radius:2px;background:${col}"></span>
-      ${procHist[k].name.length>22?procHist[k].name.slice(0,22)+'…':procHist[k].name}</span>`;
+      ${procHist[k].name.length>22?procHist[k].name.slice(0,22)+'�':procHist[k].name}</span>`;
   }).join('');
 }
 
 function updateProcSummary(s) {
   const procs=s.processes||[], memTotal=s.memory?.total_mb||1, memModel=s.memory?.mem_model||'dedicated';
-  let tG=0,tM=0; const tc={}; let topG=0,topN='—',topMs='—';
+  let tG=0,tM=0; const tc={}; let topG=0,topN='�',topMs='�';
   procs.forEach(p=>{
     tG+=(p.gpu_pct||0); tM+=(p.mem_mb||0);
     tc[p.type]=(tc[p.type]||0)+1;
-    if((p.gpu_pct||0)>topG){topG=p.gpu_pct||0;topN=p.name;topMs=p.mem_mb!=null?mbToGb(p.mem_mb).toFixed(1)+' GB':'—';}
+    if((p.gpu_pct||0)>topG){topG=p.gpu_pct||0;topN=p.name;topMs=p.mem_mb!=null?mbToGb(p.mem_mb).toFixed(1)+' GB':'�';}
   });
   const cG=Math.min(100,Math.round(tG));
   setText('ps-total', cG+'%'); setBar('psb-total', cG, 100);
   setText('ps-procs', procs.length);
-  setText('ps-procs-s', Object.entries(tc).map(([t,n])=>`${n} ${t.toLowerCase()}`).join(' · ')||'—');
+  setText('ps-procs-s', Object.entries(tc).map(([t,n])=>`${n} ${t.toLowerCase()}`).join(' � ')||'�');
   setText('ps-mem-l', memLabel(memModel)+' used');
   setText('ps-mem', mbToGb(tM).toFixed(1)+' GB'); setBar('psb-mem', tM, memTotal);
   setText('ps-mem-s', 'of '+mbToGb(memTotal).toFixed(1)+' GB');
-  setText('ps-top', topN.length>14?topN.slice(0,14)+'…':topN);
-  setText('ps-top-s', topG?Math.round(topG)+'% GPU · '+topMs:'—');
+  setText('ps-top', topN.length>14?topN.slice(0,14)+'�':topN);
+  setText('ps-top-s', topG?Math.round(topG)+'% GPU � '+topMs:'�');
   const memPct=tM/memTotal*100, cShare=(tc['Compute']||0)/Math.max(procs.length,1);
   let ins='Utilization is moderate. Click a row or legend item to isolate a process.';
   if(cShare>=.5&&cG>60) ins='Compute processes dominate. GPU and memory pressure are correlated.';
   else if(cG>80) ins='GPU near saturation. Check for scheduling contention or thermal throttling.';
-  else if(memPct>80) ins='Memory pressure is high relative to GPU utilization — processes may be memory-bound.';
+  else if(memPct>80) ins='Memory pressure is high relative to GPU utilization � processes may be memory-bound.';
   setText('proc-insight', ins);
 }
 
-// ─── Memory tab ───────────────────────────────────────────────────────────────
+// --- Memory tab ---------------------------------------------------------------
 let memChart=null;
 
 function updateMemoryTab(s) {
@@ -1702,7 +1727,7 @@ function updateMemoryTab(s) {
     ['Memory type',      memLabel(model)],
     ['Total GPU-accessible', mbToGb(m.total_mb).toFixed(1)+' GB'],
     ['Currently used',   mbToGb(m.used_mb).toFixed(1)+' GB ('+Math.round(m.used_mb/m.total_mb*100)+'%)'],
-    ['Free',             m.free_mb!=null?mbToGb(m.free_mb).toFixed(1)+' GB':'—'],
+    ['Free',             m.free_mb!=null?mbToGb(m.free_mb).toFixed(1)+' GB':'�'],
   ].map(([k,v])=>`<div style="display:flex;justify-content:space-between;align-items:baseline;font-size:13px"><span style="color:var(--text2)">${k}</span><span style="font-weight:500">${v}</span></div>`).join('');
 
   const proc=m.process_used_mb??m.used_mb*.82, res=m.driver_reserved_mb??(m.used_mb*.18), free=m.free_mb??0;
@@ -1726,9 +1751,9 @@ function updateMemoryTab(s) {
   document.getElementById('leg-proc').style.background=col;
   document.getElementById('leg-drv').style.background=col;
   setText('mem-bw-note', s.gaps?.mem_bandwidth||
-    (model==='dedicated'?'Dedicated bandwidth — not shared with CPU.':
+    (model==='dedicated'?'Dedicated bandwidth � not shared with CPU.':
      model==='unified'  ?'Unified bandwidth shared between CPU, GPU, and other engines.':
-                          'Shared DDR bandwidth — GPU and CPU contend for the same pool.'));
+                          'Shared DDR bandwidth � GPU and CPU contend for the same pool.'));
 }
 
 function updateMemChart() {
@@ -1743,7 +1768,7 @@ function updateMemChart() {
   document.getElementById('mem-chart-legend').innerHTML=keys.map((k,i)=>`
     <span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)">
       <span style="width:10px;height:10px;border-radius:2px;background:${PROC_COLORS[i%PROC_COLORS.length]}"></span>
-      ${procHist[k].name.length>20?procHist[k].name.slice(0,20)+'…':procHist[k].name}</span>`).join('');
+      ${procHist[k].name.length>20?procHist[k].name.slice(0,20)+'�':procHist[k].name}</span>`).join('');
   if(memChart){
     memChart.data.labels=Array.from({length:windowPoints(MEM_WIN)},()=>'');
     memChart.data.datasets=datasets; memChart.update('none');
@@ -1762,7 +1787,7 @@ function updateMemChart() {
 
 function setMemWin(v){MEM_WIN=parseInt(v);updateMemChart();} window.setMemWin=setMemWin;
 
-// ─── Device info tab ──────────────────────────────────────────────────────────
+// --- Device info tab ----------------------------------------------------------
 function deviceInfoRows(s) {
   const m = s.memory, caps = lastCaps;
   const hw = [
@@ -1831,7 +1856,7 @@ function updateDeviceTab(s) {
   }
 }
 
-// ─── Tab switching ────────────────────────────────────────────────────────────
+// --- Tab switching ------------------------------------------------------------
 function switchTab(name, el) {
   document.querySelectorAll('.pane').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.page-tab').forEach(t=>t.classList.remove('active'));
@@ -1847,7 +1872,7 @@ function switchTab(name, el) {
 }
 window.switchTab=switchTab;
 
-// ─── Master update ────────────────────────────────────────────────────────────
+// --- Master update ------------------------------------------------------------
 function updateAll(s) {
   safeCall(() => updateHeader(s), 'header');
   safeCall(() => updateKPI(s), 'kpi');
@@ -1865,7 +1890,7 @@ function updateAll(s) {
   }
 }
 
-// ─── Boot ─────────────────────────────────────────────────────────────────────
+// --- Boot ---------------------------------------------------------------------
 initOvCharts();
 buildOverviewUsageChart();
 setOvWin(OV_WIN);
@@ -1874,3 +1899,8 @@ connect();
 </script>
 </body>
 </html>
+
+
+
+
+
