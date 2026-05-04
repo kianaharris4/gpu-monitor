@@ -650,10 +650,6 @@ canvas{image-rendering:auto}
 
   <div class="azure-split portal-section">
     <div class="card" style="padding:14px 16px">
-      <div class="portal-card-title" style="margin-bottom:10px">Engine utilization</div>
-      <div id="engine-bars"></div>
-    </div>
-    <div class="card" style="padding:14px 16px">
       <div class="portal-card-title" style="margin-bottom:12px">Thermal &amp; power</div>
       <div style="display:flex;gap:16px;align-items:flex-start">
         <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
@@ -1623,27 +1619,6 @@ function renderOverviewProcTable() {
   setText('ov-proc-footer', procs.length ? `1-${procs.length} of ${procs.length}. Display count: Auto` : 'Waiting for per-process GPU data');
 }
 
-// -- Overview - engine bars ----------------------------------
-function updateEngines(s) {
-  const eng = s.engine || {};
-  const caps = lastCaps;
-  const defs = [
-    {label:'3D / Graphics',   val:eng.graphics_3d,  col:'#378ADD'},
-    {label:'Compute',         val:eng.compute,       col:'#7F77DD'},
-    {label:caps.enc_label||'Video Encode', val:eng.video_encode, col:'#1D9E75'},
-    {label:caps.dec_label||'Video Decode', val:eng.video_decode, col:'#EF9F27'},
-    {label:'Copy / DMA',      val:eng.copy_dma,      col:'#D4537E'},
-  ];
-  document.getElementById('engine-bars').innerHTML = defs.map(d=>`
-    <div style="margin-bottom:7px">
-      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:3px">
-        <span>${d.label}</span>
-        <span style="font-weight:600;color:var(--text)">${d.val!==null&&d.val!==undefined ? Math.round(d.val)+'%' : '<span class="na">N/A</span>'}</span>
-      </div>
-      <div class="bar-o"><div class="bar-i" style="width:${d.val||0}%;background:${d.col}"></div></div>
-    </div>`).join('');
-}
-
 // -- Overview - arcs & insight --------------------------------
 function updateArcs(s) {
   const da=207, tMax=s.temp_max_c||90, t=s.temp_c, p=s.power_w, pMax=s.power_limit_w||p||1;
@@ -1936,5 +1911,4 @@ connect();
 </script>
 </body>
 </html>
-
 

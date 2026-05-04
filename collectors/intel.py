@@ -23,6 +23,8 @@ class IntelCollector:
         snap = GPUSnapshot(vendor="intel", compute_api="Intel")
         device = self._find_intel_device()
         host_mem = self._read_host_memory()
+        temp_info = self._read_intel_temperature()
+        power_info = self._read_intel_power()
 
         if device:
             snap.device_name = device.get("name") or "Intel GPU"
@@ -45,11 +47,17 @@ class IntelCollector:
         snap.sources["driver"] = "kernel"
         if host_mem["source"]:
             snap.sources["memory"] = host_mem["source"]
+        if temp_info["value_c"] is not None:
+            snap.temp_c = temp_info["value_c"]
+            snap.sources["temperature"] = temp_info["source"]
+        if power_info["value_w"] is not None:
+            snap.power_w = power_info["value_w"]
+            snap.sources["power"] = power_info["source"]
         snap.caps.update({
             "utilization": True,
             "memory": bool(total_mb),
-            "power": False,
-            "temperature": False,
+            "power": power_info["value_w"] is not None,
+            "temperature": temp_info["value_c"] is not None,
             "mem_clock": False,
         })
 
@@ -58,8 +66,10 @@ class IntelCollector:
             snap.gaps["utilization"] = "Install intel-gpu-tools to enable live Intel GPU utilization on Linux."
             if not total_mb:
                 snap.gaps["memory"] = "Intel Linux shared memory telemetry could not be derived from /proc/meminfo."
-            snap.gaps["power"] = "Intel Linux power telemetry is not wired up yet."
-            snap.gaps["temperature"] = "Intel Linux temperature telemetry is not wired up yet."
+            if snap.power_w is None:
+                snap.gaps["power"] = "Intel Linux GPU power telemetry was not exposed under DRM hwmon interfaces."
+            if snap.temp_c is None:
+                snap.gaps["temperature"] = "Intel Linux GPU temperature telemetry was not exposed under DRM hwmon or thermal interfaces."
             return [snap]
 
         try:
@@ -96,8 +106,10 @@ class IntelCollector:
             snap.gaps["memory"] = "Memory reflects shared system RAM on Intel UMA, not dedicated per-GPU VRAM."
         else:
             snap.gaps["memory"] = "Intel Linux shared memory telemetry could not be derived from /proc/meminfo."
-        snap.gaps["power"] = "Intel Linux power telemetry is not wired up yet."
-        snap.gaps["temperature"] = "Intel Linux temperature telemetry is not wired up yet."
+        if snap.power_w is None:
+            snap.gaps["power"] = "Intel Linux GPU power telemetry was not exposed under DRM hwmon interfaces."
+        if snap.temp_c is None:
+            snap.gaps["temperature"] = "Intel Linux GPU temperature telemetry was not exposed under DRM hwmon or thermal interfaces."
         return [snap]
 
     def _read_intel_gpu_top_json(self, intel_gpu_top):
@@ -377,6 +389,113 @@ class IntelCollector:
             "source": "procfs",
         }
 
+    def _read_intel_temperature(self):
+        for device_root in self._iter_intel_drm_device_roots():
+            hwmon_root = os.path.join(device_root, "hwmon")
+            if not os.path.isdir(hwmon_root):
+                continue
+            for entry in sorted(os.listdir(hwmon_root)):
+                root = os.path.join(hwmon_root, entry)
+                temp = self._read_hwmon_temperature(root)
+                if temp is not None:
+                    return {"value_c": temp, "source": "drm-hwmon"}
+
+        thermal_root = "/sys/class/thermal"
+        if os.path.isdir(thermal_root):
+            for entry in sorted(os.listdir(thermal_root)):
+                zone_root = os.path.join(thermal_root, entry)
+                type_path = os.path.join(zone_root, "type")
+                temp_path = os.path.join(zone_root, "temp")
+                if not os.path.isfile(type_path) or not os.path.isfile(temp_path):
+                    continue
+                zone_type = self._read_text_file(type_path).lower()
+                if not any(token in zone_type for token in ("gpu", "gt", "graphics")):
+                    continue
+                temp = self._parse_millivalue(self._read_text_file(temp_path))
+                if temp is not None:
+                    return {"value_c": temp, "source": "thermal-zone"}
+
+        return {"value_c": None, "source": None}
+
+    def _read_intel_power(self):
+        for device_root in self._iter_intel_drm_device_roots():
+            hwmon_root = os.path.join(device_root, "hwmon")
+            if not os.path.isdir(hwmon_root):
+                continue
+            for entry in sorted(os.listdir(hwmon_root)):
+                root = os.path.join(hwmon_root, entry)
+                power = self._read_hwmon_power(root)
+                if power is not None:
+                    return {"value_w": power, "source": "drm-hwmon"}
+        return {"value_w": None, "source": None}
+
+    def _read_hwmon_temperature(self, root):
+        candidates = []
+        for name in sorted(os.listdir(root)):
+            match = re.match(r"temp(\d+)_input$", name)
+            if not match:
+                continue
+            idx = match.group(1)
+            label = self._read_text_file(os.path.join(root, f"temp{idx}_label")).lower()
+            value = self._parse_millivalue(self._read_text_file(os.path.join(root, name)))
+            if value is None:
+                continue
+            priority = 3
+            if any(token in label for token in ("gpu", "gt", "graphics")):
+                priority = 0
+            elif any(token in label for token in ("edge", "package")):
+                priority = 1
+            elif not label:
+                priority = 2
+            candidates.append((priority, value))
+        if not candidates:
+            return None
+        candidates.sort(key=lambda item: item[0])
+        return candidates[0][1]
+
+    def _read_hwmon_power(self, root):
+        for name in ("power1_average", "power1_input"):
+            path = os.path.join(root, name)
+            if not os.path.isfile(path):
+                continue
+            value = self._parse_power_w(self._read_text_file(path))
+            if value is not None:
+                return value
+        return None
+
+    def _parse_millivalue(self, text):
+        match = re.search(r"(-?\d+(?:\.\d+)?)", text)
+        if not match:
+            return None
+        try:
+            raw = float(match.group(1))
+        except ValueError:
+            return None
+        value = raw / 1000.0 if abs(raw) >= 1000 else raw
+        if value <= 0 or value > 150:
+            return None
+        return value
+
+    def _parse_power_w(self, text):
+        match = re.search(r"(-?\d+(?:\.\d+)?)", text)
+        if not match:
+            return None
+        try:
+            raw = float(match.group(1))
+        except ValueError:
+            return None
+        value = raw / 1_000_000.0 if abs(raw) >= 1000 else raw
+        if value <= 0 or value > 500:
+            return None
+        return value
+
+    def _read_text_file(self, path):
+        try:
+            with open(path, "r", encoding="utf-8", errors="ignore") as handle:
+                return handle.read().strip()
+        except OSError:
+            return ""
+
     def _coerce_pct(self, value):
         if value is None:
             return None
@@ -440,6 +559,24 @@ class IntelCollector:
             return from_lspci
         return self._find_intel_device_from_sysfs()
 
+    def _iter_intel_drm_device_roots(self):
+        drm_root = "/sys/class/drm"
+        if not os.path.isdir(drm_root):
+            return []
+
+        roots = []
+        for entry in sorted(os.listdir(drm_root)):
+            if not entry.startswith("card") or "-" in entry:
+                continue
+            device_root = os.path.join(drm_root, entry, "device")
+            vendor_path = os.path.join(device_root, "vendor")
+            if not os.path.isfile(vendor_path):
+                continue
+            vendor = self._read_text_file(vendor_path).lower()
+            if vendor == "0x8086":
+                roots.append(device_root)
+        return roots
+
     def _find_intel_device_from_lspci(self):
         lspci = shutil.which("lspci")
         if not lspci:
@@ -470,24 +607,8 @@ class IntelCollector:
         return None
 
     def _find_intel_device_from_sysfs(self):
-        drm_root = "/sys/class/drm"
-        if not os.path.isdir(drm_root):
-            return None
-
-        for entry in sorted(os.listdir(drm_root)):
-            if not entry.startswith("card") or "-" in entry:
-                continue
-            device_root = os.path.join(drm_root, entry, "device")
-            vendor_path = os.path.join(device_root, "vendor")
-            if not os.path.isfile(vendor_path):
-                continue
-            try:
-                vendor = open(vendor_path, "r", encoding="utf-8").read().strip().lower()
-            except OSError:
-                continue
-            if vendor != "0x8086":
-                continue
-
+        for device_root in self._iter_intel_drm_device_roots():
+            entry = os.path.basename(os.path.dirname(device_root))
             uevent_path = os.path.join(device_root, "uevent")
             driver_name = "Intel GPU"
             if os.path.isfile(uevent_path):

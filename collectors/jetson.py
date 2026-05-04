@@ -1,4 +1,5 @@
 
+import os
 import re
 import subprocess
 
@@ -28,6 +29,7 @@ class JetsonCollector:
 
         self._load_nvidia_smi_metadata(snap, errors)
         self._load_tegrastats(snap, errors)
+        self._load_procfs_memory_fallback(snap)
 
         if snap.memory and snap.memory.mem_model != "unified":
             snap.memory.mem_model = "unified"
@@ -35,7 +37,7 @@ class JetsonCollector:
         if snap.util_pct is None:
             snap.gaps["utilization"] = "GPU utilization requires tegrastats or a Jetson-compatible nvidia-smi output."
         if not snap.memory or (snap.memory.total_mb or 0.0) <= 0:
-            snap.gaps["memory"] = "Unified memory telemetry requires tegrastats on NVIDIA Jetson."
+            snap.gaps["memory"] = "Unified memory telemetry could not be derived from tegrastats, nvidia-smi, or /proc/meminfo on this Jetson."
         if snap.temp_c is None:
             snap.gaps["temperature"] = "Temperature was not reported by tegrastats or nvidia-smi."
         if snap.power_w is None:
@@ -119,7 +121,7 @@ class JetsonCollector:
 
         snap.sources["telemetry"] = "tegrastats" if "telemetry" not in snap.sources else f"{snap.sources['telemetry']} / tegrastats"
 
-        ram = re.search(r"RAM\s+(\d+)/(\d+)MB", out, re.IGNORECASE)
+        ram = re.search(r"RAM\s+(\d+(?:\.\d+)?)\s*/\s*(\d+(?:\.\d+)?)\s*(?:Mi?B)", out, re.IGNORECASE)
         if ram:
             used, total = map(float, ram.groups())
             snap.memory = MemoryInfo(
@@ -127,12 +129,12 @@ class JetsonCollector:
                 used_mb=used,
                 total_mb=total,
             )
+            snap.sources["memory"] = "tegrastats"
 
         util_pct, clock_mhz = self._parse_tegrastats_gpu(out)
         if util_pct is not None:
             snap.util_pct = util_pct
             snap.sources["utilization"] = "tegrastats"
-            snap.engine.graphics_3d = util_pct
         if clock_mhz is not None:
             snap.clock_mhz = clock_mhz
 
@@ -179,3 +181,42 @@ class JetsonCollector:
                 clock_mhz = _safe_float(first_clock)
             return util_pct, clock_mhz
         return None, None
+
+    def _load_procfs_memory_fallback(self, snap):
+        if snap.memory and (snap.memory.total_mb or 0.0) > 0:
+            return
+
+        meminfo_path = "/proc/meminfo"
+        if not os.path.isfile(meminfo_path):
+            return
+
+        values = {}
+        try:
+            with open(meminfo_path, "r", encoding="utf-8") as handle:
+                for raw_line in handle:
+                    if ":" not in raw_line:
+                        continue
+                    key, rest = raw_line.split(":", 1)
+                    match = re.search(r"(\d+)", rest)
+                    if match:
+                        values[key.strip()] = float(match.group(1))
+        except OSError:
+            return
+
+        total_kb = values.get("MemTotal", 0.0)
+        avail_kb = values.get("MemAvailable", values.get("MemFree", 0.0))
+        if total_kb <= 0:
+            return
+
+        used_kb = max(0.0, total_kb - avail_kb)
+        total_mb = total_kb / 1024.0
+        used_mb = used_kb / 1024.0
+        snap.memory = MemoryInfo(
+            mem_model="unified",
+            total_mb=total_mb,
+            used_mb=used_mb,
+            host_total_mb=total_mb,
+            host_used_mb=used_mb,
+        )
+        existing = snap.sources.get("memory")
+        snap.sources["memory"] = f"{existing} / procfs" if existing else "procfs"

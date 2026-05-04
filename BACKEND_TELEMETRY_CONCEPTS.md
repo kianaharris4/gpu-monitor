@@ -18,8 +18,8 @@ The goal is not to force every device through one command. GPU telemetry is expo
 | --- | --- | --- | --- |
 | Windows PC with Intel, NVIDIA, or AMD GPU | `WindowsCollector` | `dxdiag`, Windows GPU performance counters, optional `nvidia-smi` | General Windows laptops/desktops where Windows already exposes adapter metadata and engine counters |
 | Linux with discrete NVIDIA GPU | `NvidiaCollector` | `nvidia-smi` | Desktop/server NVIDIA GPUs using the standard NVIDIA driver and NVML stack |
-| NVIDIA Jetson | `JetsonCollector` | `tegrastats` | Jetson boards where the GPU is part of the Tegra/Jetson SoC |
-| Linux with Intel integrated GPU | `IntelCollector` | `intel_gpu_top` | Intel iGPU systems such as NUCs, laptops, and mini PCs |
+| NVIDIA Jetson | `JetsonCollector` | `tegrastats` with fallback metadata from `nvidia-smi` and unified-memory fallback from `/proc/meminfo` | Jetson boards where the GPU is part of the Tegra/Jetson SoC |
+| Linux with Intel integrated GPU | `IntelCollector` | `intel_gpu_top` with metadata from `lspci`/sysfs, memory from `/proc/meminfo`, and temperature/power from DRM `hwmon` when exposed | Intel iGPU systems such as NUCs, laptops, and mini PCs |
 | AMD GPU | `AMDCollector` | Currently minimal placeholder support | Future ROCm/AMD telemetry integration |
 | Unsupported or missing tool | `NullCollector` | No command; emits explanatory gaps | Systems where the GPU or telemetry command cannot be detected |
 
@@ -30,6 +30,8 @@ The goal is not to force every device through one command. GPU telemetry is expo
 | `nvidia-smi` | It is the standard CLI over NVIDIA Management Library for discrete NVIDIA GPUs. | GPU name, utilization, memory, temperature, power, clocks, and process memory on supported drivers. | Usually does not cover Jetson SoC GPUs; requires NVIDIA driver utilities and a loaded driver. |
 | `tegrastats` | It is the Jetson-native telemetry tool included with JetPack/L4T environments. | Jetson GPU utilization such as `GR3D` or `GR3D_FREQ`, unified RAM usage, temperature/power strings when exposed. | Output varies by Jetson model and JetPack version; not all fields are present on every board, and parsing may need to accommodate multiple `GR3D` output variants. |
 | `intel_gpu_top` | It is the Intel iGPU telemetry tool from `intel-gpu-tools`, and it exposes engine busy data that generic Linux tools often do not. | Aggregate/engine utilization, per-client/process activity when available, and engine-specific busy percentages. | Often requires render/video group access, `cap_perfmon`, or relaxed `perf_event_paranoid` settings. Memory is usually shared system memory rather than dedicated VRAM. |
+| `/proc/meminfo` | It is the stable Linux source for system memory totals and available memory, which also serves as a practical unified-memory fallback on UMA devices. | Shared/unified memory totals and used estimates for Intel iGPU and Jetson fallback paths. | It reflects system RAM, not isolated dedicated VRAM, so the interpretation differs from discrete GPU memory counters. |
+| DRM `hwmon` / thermal sysfs | They expose kernel-exported temperature and sometimes power readings for integrated devices. | Intel Linux temperature, and Intel Linux GPU power when the driver exports a usable DRM `hwmon` power file. | Availability varies by kernel, driver, and platform. Some systems expose temperature but not GPU-only power. |
 | `dxdiag` | It is a built-in Windows diagnostic command that reliably reports adapter names, vendor metadata, driver information, and display devices. | GPU name, driver version, adapter metadata. | It is metadata-oriented, not a rich live telemetry source. |
 | Windows GPU performance counters | They are the native Windows source for live GPU engine activity. | Engine utilization and process-linked GPU activity when counters map cleanly. | Counter names and adapter mappings can be inconsistent across vendors, drivers, and Windows versions. |
 | `nvidia-smi` on Windows | Used as a fallback/richer source when a Windows NVIDIA adapter is present. | NVIDIA aggregate utilization and other NVIDIA-specific metrics. | Only works if the NVIDIA utilities are installed and visible to the dashboard process. |
@@ -38,7 +40,7 @@ The goal is not to force every device through one command. GPU telemetry is expo
 
 Jetson devices are NVIDIA GPUs, but they are not the same class of device as a PCIe RTX, A-series, or datacenter GPU. A Jetson GPU is integrated into a Tegra/Jetson SoC and shares board-level thermal, power, and memory domains.
 
-`nvidia-smi` is designed around the NVIDIA Management Library path used by standard discrete NVIDIA GPUs. Jetson platforms typically expose their live board/GPU telemetry through Jetson Linux tools such as `tegrastats`, plus model-specific kernel interfaces. Because of that, `tegrastats` is the reliable baseline for Jetson, while `nvidia-smi` is the reliable baseline for discrete NVIDIA GPUs.
+`nvidia-smi` is designed around the NVIDIA Management Library path used by standard discrete NVIDIA GPUs. Jetson platforms typically expose their live board/GPU telemetry through Jetson Linux tools such as `tegrastats`, plus model-specific kernel interfaces. Because of that, `tegrastats` is the reliable baseline for Jetson, while `nvidia-smi` is the reliable baseline for discrete NVIDIA GPUs. When Jetson memory is not exposed cleanly through either path, the collector can still fall back to `/proc/meminfo` to estimate unified-memory usage from shared system RAM.
 
 In short:
 

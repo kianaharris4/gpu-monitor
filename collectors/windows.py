@@ -6,7 +6,7 @@ import tempfile
 import time
 import ctypes
 
-from schema import EngineUtilization, GPUSnapshot, MemoryInfo
+from schema import GPUSnapshot, MemoryInfo
 
 
 def _safe_float(value):
@@ -319,7 +319,6 @@ $samples | ConvertTo-Json -Compress
             engine_info = counters["engines"].get(luid, {})
             rollup = self._roll_up_engines(engine_info)
             snap.util_pct = rollup["total"]
-            snap.engine = rollup["engine"]
             snap.sources["luid"] = luid
             if rollup["total"] is None:
                 snap.gaps["utilization"] = "No active GPU engine counter matched this NVIDIA adapter."
@@ -376,7 +375,6 @@ $samples | ConvertTo-Json -Compress
         engine_info = counters["engines"].get(luid, {})
         rollup = self._roll_up_engines(engine_info)
         snap.util_pct = rollup["total"]
-        snap.engine = rollup["engine"]
         snap.sources["luid"] = luid
 
     def _pick_luid_for_integrated(self, counters, used_luids):
@@ -407,38 +405,16 @@ $samples | ConvertTo-Json -Compress
         return candidates[0][3]
 
     def _roll_up_engines(self, engine_info):
-        totals = {
-            "graphics_3d": 0.0,
-            "compute": 0.0,
-            "video_encode": 0.0,
-            "video_decode": 0.0,
-            "copy_dma": 0.0,
-        }
         busiest = 0.0
 
         for engine in engine_info.values():
             value = max(0.0, float(engine["value"]))
             busiest = max(busiest, value)
-            engine_type = engine["type"]
-            if engine_type in ("3d", "graphics"):
-                totals["graphics_3d"] += value
-            elif engine_type in ("compute",):
-                totals["compute"] += value
-            elif engine_type in ("videoencode",):
-                totals["video_encode"] += value
-            elif engine_type in ("videodecode",):
-                totals["video_decode"] += value
-            elif engine_type in ("copy",):
-                totals["copy_dma"] += value
-
-        for key in totals:
-            totals[key] = min(100.0, totals[key]) if totals[key] else None
 
         return {
             # Task Manager's default GPU percentage on Windows typically follows
             # the busiest engine rather than summing every engine simultaneously.
             "total": min(100.0, busiest) if engine_info else None,
-            "engine": EngineUtilization(**totals),
         }
 
     def _parse_mb(self, value):

@@ -19,16 +19,6 @@ capabilities = {
 }
 
 @dataclass
-class EngineUtilization:
-    """Per-engine busy percentage. None = not available for this vendor."""
-    graphics_3d:  Optional[float] = None
-    compute:      Optional[float] = None
-    video_encode: Optional[float] = None
-    video_decode: Optional[float] = None
-    copy_dma:     Optional[float] = None
-
-
-@dataclass
 class MemoryInfo:
     """GPU-accessible memory. mem_model drives dashboard labelling."""
     mem_model:          str            = "dedicated"
@@ -69,7 +59,6 @@ class GPUSnapshot:
     bus_id:        Optional[str] = None
     pcie_info:     Optional[str] = None
     util_pct:      Optional[float] = None
-    engine:        EngineUtilization = field(default_factory=EngineUtilization)
     memory:        MemoryInfo = field(default_factory=MemoryInfo)
     temp_c:        Optional[float] = None
     hot_spot_c:    Optional[float] = None
