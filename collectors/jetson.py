@@ -51,7 +51,7 @@ class JetsonCollector:
             result = subprocess.check_output(
                 [
                     "nvidia-smi",
-                    "--query-gpu=index,name,driver_version,pci.bus_id,utilization.gpu,temperature.gpu,power.draw,power.limit",
+                    "--query-gpu=index,name,driver_version,pci.bus_id,utilization.gpu,temperature.gpu,power.draw,power.limit,memory.used,memory.total",
                     "--format=csv,noheader,nounits",
                 ],
                 timeout=5,
@@ -63,8 +63,8 @@ class JetsonCollector:
 
         first_row = next((row for row in result.splitlines() if row.strip()), "")
         parts = [part.strip() for part in first_row.split(",")] if first_row else []
-        if len(parts) >= 8:
-            idx, name, driver_version, bus_id, util, temp, power, power_limit = parts[:8]
+        if len(parts) >= 10:
+            idx, name, driver_version, bus_id, util, temp, power, power_limit, mem_used, mem_total = parts[:10]
             snap.gpu_index = _safe_int(idx)
             if name and name not in ("N/A", "[N/A]"):
                 snap.device_name = name
@@ -81,6 +81,16 @@ class JetsonCollector:
                 snap.power_w = _safe_float(power)
             if snap.power_limit_w is None:
                 snap.power_limit_w = _safe_float(power_limit)
+            if (snap.memory.total_mb or 0.0) <= 0:
+                parsed_total = _safe_float(mem_total) or 0.0
+                parsed_used = _safe_float(mem_used) or 0.0
+                if parsed_total > 0:
+                    snap.memory = MemoryInfo(
+                        mem_model="unified",
+                        used_mb=parsed_used,
+                        total_mb=parsed_total,
+                    )
+                    snap.sources["memory"] = "nvidia-smi"
 
             snap.sources["gpu"] = "nvidia-smi"
             snap.sources["driver"] = "nvidia-smi"
